@@ -31,9 +31,23 @@ html, body {
 .sidebar__header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
   padding: 16px;
   background: #ff8a3d;
+}
+
+.view-count {
+  display: flex;
+  gap: 10px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.85);
+  white-space: nowrap;
+}
+
+.view-count b {
+  color: #fff;
+  font-weight: 700;
 }
 
 .sidebar__logo {
