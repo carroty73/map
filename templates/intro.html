@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>당근 핫플 지도</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- 카톡/SNS 미리보기 -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="당근 핫플 지도">
+    <meta property="og:description" content="핫플을 지도로 모아봤어요.">
+    <meta property="og:url" content="http://221.138.105.134:8001/">
+    <meta property="og:image" content="http://221.138.105.134:8001/static/img/company-og.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content="http://221.138.105.134:8001/static/img/company-og.png">
+
+    <link rel="stylesheet" as="style" crossorigin
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/intro.css') }}">
+    <script src="{{ url_for('static', filename='js/intro.js') }}" defer></script>
+</head>
+<body>
+    <div class="container">
+        <img src="{{ url_for('static', filename='img/coffee.png') }}" alt="로딩중">
+        <!--
+        <h1>야, 어디 괜찮은 식당 없냐?</h1>
+        <h2>지도로 바로 보여줄께</h2>
+        -->
+        <h1>Hey, know any good cafes?</h1>
+        <h2>I'll show on the map.</h2>
+        <h3>company.carroty.com</h3>
+    </div>
+</body>
+</html>

@@ -1,0 +1,101 @@
+html, body, #map { height: 100%; margin: 0; }
+
+.company-title {
+  position: fixed;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  width: min(92vw, 340px);
+  padding: 10px 14px;
+  text-align: center;
+  background: rgba(255,255,255,0.92);
+  border-radius: 14px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.company-title__name {
+  display: block;
+  font-weight: 700;
+  font-size: clamp(16px, 4.2vw, 22px);
+}
+
+.company-title__visit {
+  display: block;
+  margin-top: 4px;
+  font-size: 13px;
+  color: #444;
+}
+
+.company-search {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.company-search input {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 14px;
+  outline: none;
+}
+
+.company-search input:focus { border-color: #e67e00; }
+
+.company-search button {
+  border: none;
+  border-radius: 10px;
+  padding: 8px 12px;
+  background: #e67e00;
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.company-search__msg {
+  margin-top: 6px;
+  min-height: 16px;
+  font-size: 12px;
+  color: #666;
+}
+
+.company-search__msg.is-error { color: #c0392b; }
+.company-search__msg.is-ok { color: #2d7a32; }
+
+.company-popup {
+  text-align: center;
+  min-width: 140px;
+}
+
+.company-popup a {
+  color: #e67e00;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+#loading {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  z-index: 1000;
+  background: rgba(0,0,0,0.7);
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-family: sans-serif;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.35; transform: scale(1.18); }
+}
+
+.blink-marker { animation: blink 0.7s ease-in-out 4; }

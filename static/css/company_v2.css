@@ -1,0 +1,529 @@
+/* Phase 3 UI 실습: 카카오맵 스타일 레이아웃(모양만) */
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: "Pretendard", -apple-system, sans-serif;
+}
+
+.layout {
+  display: flex;
+  height: 100vh;
+}
+
+/* 좌측 사이드바 */
+.sidebar {
+  width: 360px;
+  min-width: 360px;
+  height: 100%;
+  background: #fff;
+  border-right: 1px solid #e5e5e5;
+  display: flex;
+  flex-direction: column;
+  transition: width 0.2s ease, min-width 0.2s ease;
+}
+
+.sidebar__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px;
+  background: #ff8a3d;
+}
+
+.sidebar__logo {
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.sidebar__search {
+  padding: 0 16px 12px;
+  background: #ff8a3d;
+}
+
+.sidebar__search input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  background: #fff;
+  color: #333;
+  opacity: 1;
+}
+
+.sidebar__tabs {
+  display: flex;
+  border-bottom: 1px solid #eee;
+  padding: 0 16px;
+  background: #ff8a3d;
+}
+
+.sidebar__tabs button {
+  flex: 1;
+  padding: 10px 0;
+  border: none;
+  background: none;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.75);
+  cursor: pointer;
+}
+
+.sidebar__tabs button.active {
+  color: #fff;
+  font-weight: 600;
+  border-bottom: 4px solid #fff;
+}
+
+.sidebar__categories {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  padding: 16px;
+}
+
+.sidebar__categories[hidden] {
+  display: none;
+}
+
+/* 맛집/회사 토글 (세그먼트 버튼) */
+.domain-toggle {
+  display: flex;
+  margin: 12px 16px 0;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.domain-toggle button {
+  flex: 1;
+  padding: 8px 0;
+  border: none;
+  background: #fff;
+  font-size: 13px;
+  color: #666;
+  cursor: pointer;
+}
+
+.domain-toggle button + button {
+  border-left: 1px solid #ddd;
+}
+
+.domain-toggle button.active {
+  background: #ff8a3d;
+  color: #fff;
+  font-weight: 600;
+}
+
+.sidebar__categories button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.sidebar__categories .icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #f3f3f3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.sidebar__categories .icon img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+}
+
+.sidebar__categories span {
+  font-size: 12px;
+  color: #444;
+}
+
+.sidebar__section-title {
+  padding: 8px 16px;
+  font-size: 13px;
+  color: #999;
+}
+
+.sidebar__list {
+  list-style: none;
+  margin: 0;
+  padding: 0 16px;
+}
+
+.sidebar__list li {
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 14px;
+  color: #333;
+}
+
+/* 탭 클릭 시 보여줄 패널 영역 (애니메이션 없이 바로 전환) */
+.sidebar__panels {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.sidebar__panel {
+  display: none;
+}
+
+.sidebar__panel.active {
+  display: block;
+}
+
+.profile {
+  text-align: center;
+  padding: 20px 16px 20px;
+}
+
+.profile__avatar {
+  width: 56px;
+  height: 56px;
+  line-height: 56px;
+  margin: 0 auto 10px;
+  border-radius: 50%;
+  background: #fff2e2;
+  font-size: 26px;
+}
+
+.profile__name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.profile__email {
+  font-size: 13px;
+  color: #999;
+  margin-top: 2px;
+}
+
+/* 1. 광고 (자리표시자) */
+.ad-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 16px;
+  padding: 12px;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  background: #fafafa;
+  text-decoration: none;
+  color: inherit;
+}
+
+.ad-card__tag {
+  font-size: 11px;
+  color: #999;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+
+.ad-card__text {
+  flex: 1;
+}
+
+.ad-card__title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+}
+
+.ad-card__desc {
+  font-size: 12px;
+  color: #999;
+  margin-top: 2px;
+}
+
+.ad-card__thumb {
+  width: 48px;
+  height: 48px;
+  border-radius: 6px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+/* 2. 공지 */
+.notice-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 16px 12px;
+  font-size: 12px;
+}
+
+.notice-line__tag {
+  color: #ff8a3d;
+  font-weight: 600;
+}
+
+.notice-line__text {
+  flex: 1;
+  color: #666;
+}
+
+.notice-line__more {
+  color: #bbb;
+  text-decoration: none;
+}
+
+/* 3. 하단 링크 */
+.sidebar__footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin: 0 16px 16px;
+  font-size: 12px;
+}
+
+.sidebar__footer-links a {
+  color: #999;
+  text-decoration: none;
+}
+
+.sidebar__empty {
+  padding: 0 16px;
+  font-size: 13px;
+  color: #999;
+  line-height: 1.5;
+}
+
+/* 등록 패널 안의 폼 (원래 input.html에 있던 것을 그대로 가져옴) */
+.register-form {
+  padding: 20px 16px 16px;
+}
+
+.register-form .form-field {
+  margin-bottom: 14px;
+}
+
+.register-form .form-field label {
+  display: block;
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 6px;
+}
+
+.register-form input,
+.register-form select,
+.register-form textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+}
+
+.register-form textarea {
+  resize: vertical;
+  min-height: 70px;
+}
+
+.register-form .form-row {
+  display: flex;
+  gap: 10px;
+}
+
+.register-form .form-row .form-field {
+  flex: 1;
+}
+
+.register-form .form-submit {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 6px;
+  background: #ff6f0f;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* 사이드바 접기/펼치기 토글 버튼 (사이드바 우측 가장자리에 붙은 화살표) */
+.sidebar {
+  position: relative;
+}
+
+.sidebar__toggle {
+  position: absolute;
+  top: 50%;
+  right: -14px;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  border: 1px solid #ddd;
+  border-radius: 50%;
+  background: #fff;
+  font-size: 12px;
+  cursor: pointer;
+  z-index: 5;
+}
+
+/* 접힌 상태: 사이드바 폭을 줄이고, 내용물은 숨긴 채 토글 버튼만 남긴다 */
+.sidebar--collapsed {
+  width: 56px;
+  min-width: 56px;
+}
+
+.sidebar--collapsed .sidebar__header,
+.sidebar--collapsed .sidebar__search,
+.sidebar--collapsed .sidebar__tabs {
+  display: none;
+}
+
+/* 접힌 상태에서는 탭과 상관없이 카테고리 아이콘만 세로로 보여준다 */
+.sidebar--collapsed .sidebar__panels {
+  display: block;
+  overflow: visible;
+}
+
+.sidebar--collapsed .sidebar__panel {
+  display: none;
+}
+
+.sidebar--collapsed #panel-search {
+  display: block;
+}
+
+.sidebar--collapsed .sidebar__section-title,
+.sidebar--collapsed .sidebar__list,
+.sidebar--collapsed .domain-toggle {
+  display: none;
+}
+
+.sidebar--collapsed .sidebar__categories {
+  grid-template-columns: 1fr;
+  padding: 12px 0;
+}
+
+.sidebar--collapsed .sidebar__categories span:last-child {
+  display: none;
+}
+
+/* 우측 지도 영역 (지금은 자리만 차지하는 자리표시자) */
+.map-area {
+  position: relative;
+  flex: 1;
+  height: 100%;
+  background: #eef1f2;
+}
+
+#map {
+  position: absolute;
+  inset: 0;
+  z-index: 0; /* Leaflet 내부 컨트롤(z-index:1000 등)이 이 안에서만 쌓이도록 별도 stacking context를 만든다 */
+}
+
+.map-area__zoom {
+  position: absolute;
+  right: 12px;
+  bottom: 40px;
+  z-index: 10; /* #map 위에 항상 보이도록 */
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.map-area__zoom button {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: #fff;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.map-area__zoom button + button {
+  border-top: 1px solid #eee;
+}
+
+/* 모바일 전용 상하 접기 토글 버튼: 데스크톱에서는 숨김 */
+.sidebar__mobile-toggle {
+  display: none;
+}
+
+/* ===== 모바일 반응형 (768px 이하) ===== */
+@media (max-width: 768px) {
+  .layout {
+    flex-direction: column;
+  }
+
+  /* 사이드바를 상단 바로: 전체 폭, 높이는 화면의 절반 정도로 제한 */
+  .sidebar {
+    width: 100%;
+    min-width: 0;
+    height: auto;
+    max-height: 55vh;
+    border-right: none;
+    border-bottom: 1px solid #e5e5e5;
+  }
+
+  /* 접기/펼치기 토글은 좌우 레이아웃 전용 기능이라 모바일에서는 숨긴다 */
+  .sidebar__toggle {
+    display: none;
+  }
+
+  .sidebar--collapsed {
+    width: 100%;
+    min-width: 0;
+  }
+
+  /* 모바일 상하 토글 버튼: 상단 바 하단 가운데에 붙여둔다 */
+  .sidebar__mobile-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    left: 50%;
+    bottom: -14px;
+    transform: translateX(-50%);
+    width: 28px;
+    height: 28px;
+    border: 1px solid #ddd;
+    border-radius: 50%;
+    background: #fff;
+    font-size: 12px;
+    cursor: pointer;
+    z-index: 5;
+  }
+
+  /* 이 버튼을 누르면 상단 바 아래 패널(카테고리/목록/폼 등)만 숨기고,
+     검색창+탭까지만 남긴다 */
+  .sidebar--mobile-collapsed {
+    max-height: none;
+  }
+
+  .sidebar--mobile-collapsed .sidebar__panels {
+    display: none;
+  }
+
+  /* 지도는 남은 세로 공간을 전부 차지 */
+  .map-area {
+    flex: 1;
+    min-height: 40vh;
+  }
+}

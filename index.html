@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>당근이의 핫플 지도</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="/static/css/company_v2.css">
+</head>
+<body>
+  <div class="layout">
+
+    <!-- 좌측 사이드바: 지금은 모양만 (지도/검색 로직 없음), 탭 전환 + 접기/펼치기만 동작 -->
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar__header">
+        <span class="sidebar__logo">당근이의 핫플 지도</span>
+      </div>
+
+      <div class="sidebar__search">
+        <input type="search" placeholder="예: 신화 짬뽕" disabled>
+      </div>
+
+      <div class="sidebar__tabs">
+        <button class="active" type="button" data-panel="panel-search">검색</button>
+        <button type="button" data-panel="panel-favorite">즐겨찾기</button>
+        <button type="button" data-panel="panel-register">등록</button>
+        <button type="button" data-panel="panel-guide">내 정보</button>
+      </div>
+
+      <!-- 탭 클릭하면 이 안의 패널이 (애니메이션 없이) 바로 바뀐다 -->
+      <div class="sidebar__panels">
+        <div id="panel-search" class="sidebar__panel active">
+          <!-- 맛집/회사 토글: 아래 카테고리 아이콘 세트만 바뀐다 (되돌리기 쉬움) -->
+          <div class="domain-toggle">
+            <button type="button" class="active" data-domain="company">회사</button>
+            <button type="button" data-domain="hotspot">맛집</button>
+          </div>
+
+          <div class="sidebar__categories" data-domain="company">
+            <button type="button"><span class="icon">💾</span><span>펌웨어</span></button>
+            <button type="button"><span class="icon">🔌</span><span>회로설계</span></button>
+            <button type="button"><span class="icon">🖊️</span><span>PCB 아트웍</span></button>
+            <button type="button"><span class="icon">🏭</span><span>PCB 제작</span></button>
+            <button type="button"><span class="icon">🔧</span><span>SMT/조립/하네스</span></button>
+            <button type="button"><span class="icon">📦</span><span>부품 유통</span></button>
+            <button type="button"><span class="icon">🛠️</span><span>기구설계/CNC</span></button>
+            <button type="button"><span class="icon">🧰</span><span>기구/케이스</span></button>
+            <button type="button"><span class="icon">📏</span><span>계측/시험/인증</span></button>
+            <button type="button"><span class="icon">➕</span><span>기타</span></button>
+          </div>
+
+          <div class="sidebar__categories" data-domain="hotspot" hidden>
+            <button type="button"><span class="icon"><img src="/static/ico/pack_2/04_eat.png" alt=""></span><span>먹을 거리</span></button>
+            <button type="button"><span class="icon"><img src="/static/ico/pack_2/03_drink.png" alt=""></span><span>마실 거리</span></button>
+            <button type="button"><span class="icon"><img src="/static/ico/pack_2/05_play.png" alt=""></span><span>즐길 거리</span></button>
+            <button type="button"><span class="icon"><img src="/static/ico/pack_2/07_stay.png" alt=""></span><span>숙소</span></button>
+            <button type="button"><span class="icon"><img src="/static/ico/pack_2/01_see.png" alt=""></span><span>볼 거리</span></button>
+            <button type="button"><span class="icon"><img src="/static/ico/pack_2/02_learn.png" alt=""></span><span>알아갈 거리</span></button>
+            <button type="button"><span class="icon"><img src="/static/ico/pack_2/06_rest.png" alt=""></span><span>쉴 거리</span></button>
+            <button type="button"><span class="icon"><img src="/static/ico/pack_2/08_move.png" alt=""></span><span>교통</span></button>
+          </div>
+
+          <div class="sidebar__section-title">장소 목록 (자리표시자)</div>
+          <ul class="sidebar__list">
+            <li>네오시그널</li>
+            <li>경원 하네스</li>
+            <li>아트웍 서킷</li>
+            <li>회로로 컴퍼니</li>
+            <li>한빛 정밀</li>
+          </ul>
+
+          <!-- 1. 광고 (자리표시자) -->
+          <a class="ad-card" href="https://tulip-taker-d50.notion.site/3b2f99a4bb2380abbee9d297ee0393d6?source=copy_link" target="_blank" rel="noopener">
+            <span class="ad-card__tag">AD</span>
+            <div class="ad-card__text">
+              <div class="ad-card__title">당근이 파트너 광고</div>
+              <div class="ad-card__desc">여기에 광고가 들어갈 예정입니다.</div>
+            </div>
+            <img class="ad-card__thumb" alt="광고 이미지"
+                 src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Crect width='48' height='48' rx='8' fill='%23ff8a3d'/%3E%3Ctext x='50%25' y='58%25' font-size='24' text-anchor='middle' dominant-baseline='middle'%3E%F0%9F%93%A2%3C/text%3E%3C/svg%3E">
+          </a>
+
+          <!-- 2. 공지 -->
+          <div class="notice-line">
+            <span class="notice-line__tag">공지</span>
+            <span class="notice-line__text">데이터베이스 점검 안내</span>
+            <a href="https://tulip-taker-d50.notion.site/3b2f99a4bb238071817ffdb064f4d9ca?source=copy_link" target="_blank" rel="noopener" class="notice-line__more">더보기</a>
+          </div>
+
+          <!-- 3. 하단 링크 -->
+          <div class="sidebar__footer-links">
+            <a href="https://tulip-taker-d50.notion.site/3b2f99a4bb23805fa17bcca1ce3afb50?source=copy_link" target="_blank" rel="noopener">고객센터</a>
+            <a href="https://tulip-taker-d50.notion.site/3b2f99a4bb23807ea4f9f83c8deb1fb3?source=copy_link" target="_blank" rel="noopener">개인정보처리방침</a>
+          </div>
+        </div>
+
+        <div id="panel-favorite" class="sidebar__panel">
+          <ul class="sidebar__list">
+            <li>신화 짬뽕</li>
+            <li>경원 하네스</li>
+            <li>아트웍 서킷</li>
+            <li>한강약국</li>
+            <li>조아약국</li>
+          </ul>
+        </div>
+
+        <div id="panel-register" class="sidebar__panel">
+          <form class="register-form">
+            <div class="form-field">
+              <label for="reg-name">상호</label>
+              <input id="reg-name" type="text" placeholder="예: 신화 짬뽕">
+            </div>
+
+            <div class="form-field">
+              <label for="reg-address">주소</label>
+              <input id="reg-address" type="text" placeholder="예: 경기도 의정부시 평화로 522">
+            </div>
+
+            <div class="form-row">
+              <div class="form-field">
+                <label for="reg-category">카테고리</label>
+                <select id="reg-category">
+                  <option>볼 거리</option>
+                  <option>알아갈 거리</option>
+                  <option>마실 거리</option>
+                  <option>먹을 거리</option>
+                  <option>즐길 거리</option>
+                  <option>쉴 거리</option>
+                  <option>숙소</option>
+                  <option>교통</option>
+                  <option>기타</option>
+                </select>
+              </div>
+
+              <div class="form-field">
+                <label for="reg-contact">연락처</label>
+                <input id="reg-contact" type="tel" placeholder="예: 031-000-0000">
+              </div>
+            </div>
+
+            <div class="form-field">
+              <label for="reg-memo">메모</label>
+              <textarea id="reg-memo" placeholder="참고할 내용을 적어주세요"></textarea>
+            </div>
+
+            <button class="form-submit" type="button">등록하기</button>
+          </form>
+        </div>
+
+        <div id="panel-guide" class="sidebar__panel">
+          <div class="profile">
+            <div class="profile__avatar">🥕</div>
+            <div class="profile__name">당근이</div>
+            <div class="profile__email">carrot@example.com</div>
+          </div>
+
+          <ul class="sidebar__list">
+            <li>등록한 장소 3곳</li>
+            <li>즐겨찾기 5곳</li>
+            <li>가입일 2026-01-01</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- 사이드바 전체를 접었다 펼치는 토글 버튼 (PC: 좌우) -->
+      <button type="button" id="sidebar-toggle" class="sidebar__toggle" title="사이드바 접기/펼치기">◀</button>
+
+      <!-- 모바일 전용: 상단 바 아래 내용(카테고리/목록/폼 등)만 접었다 펼치는 버튼 -->
+      <button type="button" id="mobile-toggle" class="sidebar__mobile-toggle" title="내용 접기/펼치기">▲</button>
+    </div>
+
+    <!-- 우측 지도 영역: Leaflet 지도만 띄운다 (마커/검색 연동은 아직 없음) -->
+    <div class="map-area">
+      <div id="map"></div>
+
+      <div class="map-area__zoom">
+        <button type="button">+</button>
+        <button type="button">-</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    // 지도만 띄운다 (마커/검색 연동은 나중에).
+    const map = L.map("map", { zoomControl: false, attributionControl: false })
+      .setView([37.738060, 127.046110], 13);
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+      attribution: "&copy; OpenStreetMap, CARTO",
+      maxZoom: 20,
+    }).addTo(map);
+    // 기본 위치(우하단)가 우리 커스텀 확대/축소 버튼과 겹쳐서 왼쪽 아래로 옮긴다.
+    L.control.attribution({ position: "bottomleft" }).addTo(map);
+
+    document.querySelectorAll(".map-area__zoom button")[0]
+      .addEventListener("click", function () { map.zoomIn(); });
+    document.querySelectorAll(".map-area__zoom button")[1]
+      .addEventListener("click", function () { map.zoomOut(); });
+
+    // 탭 버튼을 누르면 active 표시를 옮기고, 해당 패널을 바로 보여준다 (애니메이션 없음).
+    const tabButtons = document.querySelectorAll(".sidebar__tabs button");
+    const panels = document.querySelectorAll(".sidebar__panel");
+
+    tabButtons.forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        tabButtons.forEach(function (b) { b.classList.remove("active"); });
+        btn.classList.add("active");
+
+        const targetId = btn.getAttribute("data-panel");
+        panels.forEach(function (panel) {
+          panel.classList.toggle("active", panel.id === targetId);
+        });
+      });
+    });
+
+    // 검색 패널 안의 맛집/회사 토글: 아래 카테고리 아이콘 세트만 바뀐다.
+    const domainButtons = document.querySelectorAll(".domain-toggle button");
+    const categoryGroups = document.querySelectorAll(".sidebar__categories");
+
+    domainButtons.forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        domainButtons.forEach(function (b) { b.classList.remove("active"); });
+        btn.classList.add("active");
+
+        const domain = btn.getAttribute("data-domain");
+        categoryGroups.forEach(function (group) {
+          group.hidden = group.getAttribute("data-domain") !== domain;
+        });
+      });
+    });
+
+    // 사이드바 접기/펼치기 토글: 접으면 왼쪽으로 숨으면서 아이콘만 남은 좁은 형태가 된다.
+    const sidebar = document.getElementById("sidebar");
+    const sidebarToggle = document.getElementById("sidebar-toggle");
+
+    sidebarToggle.addEventListener("click", function () {
+      const collapsed = sidebar.classList.toggle("sidebar--collapsed");
+      sidebarToggle.textContent = collapsed ? "▶" : "◀";
+    });
+
+    // 모바일 전용 토글: 상단 바 아래 내용(패널)만 접었다 펼친다.
+    const mobileToggle = document.getElementById("mobile-toggle");
+
+    mobileToggle.addEventListener("click", function () {
+      const collapsed = sidebar.classList.toggle("sidebar--mobile-collapsed");
+      mobileToggle.textContent = collapsed ? "▼" : "▲";
+    });
+  </script>
+</body>
+</html>
