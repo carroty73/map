@@ -314,13 +314,49 @@ def prune_old_daily(daily, keep_days=90):
             del daily[d]
 
 
-def notify_new_visit(today_count, total_count):
+def get_client_ip():
+    # Cloudflare를 거치면 request.remote_addr는 Cloudflare 엣지 IP라서,
+    # 실제 접속자 IP는 CF-Connecting-IP 헤더에서 읽는다.
+    return request.headers.get("CF-Connecting-IP") or request.remote_addr
+
+
+def get_geo_info(ip):
+    try:
+        res = requests.get(f"https://ipapi.co/{ip}/json/", timeout=3)
+        data = res.json()
+        if data.get("error"):
+            return ""
+        parts = [p for p in [data.get("country_name"), data.get("city")] if p]
+        return " ".join(parts)
+    except Exception:
+        return ""
+
+
+def get_device_info():
+    ua = request.headers.get("User-Agent", "")
+    device = "모바일" if "Mobile" in ua else "PC"
+    browsers = ["Whale", "Edg", "Chrome", "Firefox", "Safari"]
+    browser = next((b for b in browsers if b in ua), "알 수 없음")
+    return f"{device} · {browser}"
+
+
+def notify_new_visit(today_count, total_count, ip):
     if not NTFY_TOPIC:
         return
+    geo = get_geo_info(ip)
+    ip_line = f"IP: {ip}" + (f" ({geo})" if geo else "")
+    device_line = f"기기: {get_device_info()}"
+    referrer_line = f"유입: {request.referrer or '직접 접속'}"
+    message = "\n".join([
+        f"오늘 {today_count}번째 방문 (누적 {total_count})",
+        ip_line,
+        device_line,
+        referrer_line,
+    ])
     try:
         requests.post(
             "https://" + "ntfy.sh/" + NTFY_TOPIC,
-            data=f"오늘 {today_count}번째 방문 (누적 {total_count})".encode("utf-8"),
+            data=message.encode("utf-8"),
             headers={
                 "Title": "당근이의 핫플 지도 방문".encode("utf-8"),
                 "Tags": "eyes",
@@ -335,13 +371,14 @@ def notify_new_visit(today_count, total_count):
 def api_view_count():
     data = load_view_counts()
     today = date.today().isoformat()
+    client_ip = get_client_ip()
 
-    if request.remote_addr not in MY_IPS:
+    if client_ip not in MY_IPS:
         data["total"] += 1
         data["daily"][today] = data["daily"].get(today, 0) + 1
         prune_old_daily(data["daily"])
         save_view_counts(data)
-        notify_new_visit(data["daily"][today], data["total"])
+        notify_new_visit(data["daily"][today], data["total"], client_ip)
 
     return jsonify({
         "today": data["daily"].get(today, 0),
