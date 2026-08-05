@@ -1,5 +1,5 @@
 .env
-count.txt
+view_count.json
 boundaries/
 __pycache__/
 *.pyc

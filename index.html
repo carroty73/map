@@ -15,8 +15,8 @@
       <div class="sidebar__header">
         <span class="sidebar__logo">당근이의 핫플 지도</span>
         <div class="view-count">
-          <span>Today <b>128</b></span>
-          <span>Total <b>45,231</b></span>
+          <span>Today <b id="view-count-today">-</b></span>
+          <span>Total <b id="view-count-total">-</b></span>
         </div>
       </div>
 
@@ -684,6 +684,15 @@
           registerSubmitBtn.disabled = false;
         });
     });
+
+    // ===== 조회수 =====
+    fetch("/api/view-count")
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        document.getElementById("view-count-today").textContent = (data.today || 0).toLocaleString();
+        document.getElementById("view-count-total").textContent = (data.total || 0).toLocaleString();
+      })
+      .catch(function (err) { console.warn("조회수를 불러오지 못했습니다.", err); });
 
     setupBoundaries();
     loadPlaces();

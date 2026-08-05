@@ -7,6 +7,7 @@ NOTION_TOKEN = os.environ.get("NOTION_TOKEN")
 NOTION_HOT_DB_ID = os.environ.get("NOTION_HOT_DB_ID")
 NOTION_COMPANY_DB_ID = os.environ.get("NOTION_COMPANY_DB_ID")
 KAKAO_API_KEY = os.environ.get("kAKAO_REST_KEY")
+MY_IP = os.environ.get("MY_IP", "")
 
 from flask import (
     Flask,
@@ -17,14 +18,15 @@ from flask import (
     jsonify,
     abort,
 )
+import json
 import re
 import requests
+from datetime import date, timedelta
 from urllib.parse import unquote
 
 app = Flask(__name__)
 
-COUNT_FILE = "count.txt"
-MY_IP = "221.138.105.134"
+VIEW_COUNT_FILE = "view_count.json"
 
 MAP_LAT = 37.738060
 MAP_LON = 127.046110
@@ -286,19 +288,46 @@ def api_register():
     })
 
 
-@app.route("/count.txt")
-def get_count():
+def load_view_counts():
+    if not os.path.exists(VIEW_COUNT_FILE):
+        return {"total": 0, "daily": {}}
+    try:
+        with open(VIEW_COUNT_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except Exception:
+        return {"total": 0, "daily": {}}
+    data.setdefault("total", 0)
+    data.setdefault("daily", {})
+    return data
+
+
+def save_view_counts(data):
+    with open(VIEW_COUNT_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False)
+
+
+def prune_old_daily(daily, keep_days=90):
+    cutoff = (date.today() - timedelta(days=keep_days)).isoformat()
+    for d in list(daily.keys()):
+        if d < cutoff:
+            del daily[d]
+
+
+@app.route("/api/view-count")
+def api_view_count():
+    data = load_view_counts()
+    today = date.today().isoformat()
+
     if request.remote_addr != MY_IP:
-        if not os.path.exists(COUNT_FILE):
-            count = 1
-        else:
-            with open(COUNT_FILE, "r") as f:
-                count = int(f.read()) + 1
-        with open(COUNT_FILE, "w") as f:
-            f.write(str(count))
-    else:
-        count = open(COUNT_FILE).read() if os.path.exists(COUNT_FILE) else 0
-    return str(count)
+        data["total"] += 1
+        data["daily"][today] = data["daily"].get(today, 0) + 1
+        prune_old_daily(data["daily"])
+        save_view_counts(data)
+
+    return jsonify({
+        "today": data["daily"].get(today, 0),
+        "total": data["total"],
+    })
 
 
 # ============================================================

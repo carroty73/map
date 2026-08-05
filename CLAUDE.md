@@ -30,8 +30,10 @@ python app.py
 `http://0.0.0.0:8001`에서 실행됩니다. 다음 항목이 담긴 `.env` 파일이 필요합니다
 (커밋되지 않음):
 - `NOTION_TOKEN` — Notion 통합 토큰
-- `NOTION_DB_ID` — 장소 DB의 Notion 데이터베이스 ID
-- `KAKAO_API_KEY` — Kakao 지오코딩 API 키
+- `NOTION_HOT_DB_ID` — 핫플 DB의 Notion 데이터베이스 ID
+- `NOTION_COMPANY_DB_ID` — 회사 DB의 Notion 데이터베이스 ID
+- `kAKAO_REST_KEY` — Kakao 지오코딩 API 키
+- `MY_IP` — 조회수 카운트에서 제외할 소유자 IP (선택, 미설정 시 전부 카운트)
 
 이 저장소에는 별도의 빌드/린트/테스트 도구가 없습니다 — 작은 스크립트형 앱입니다.
 
