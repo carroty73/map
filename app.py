@@ -157,7 +157,7 @@ def index():
     return render_template("intro.html")
 
 
-@app.route("/map")
+@app.route("/main")
 def map_page():
     return send_file("index.html")
 
