@@ -8,6 +8,7 @@ NOTION_HOT_DB_ID = os.environ.get("NOTION_HOT_DB_ID")
 NOTION_COMPANY_DB_ID = os.environ.get("NOTION_COMPANY_DB_ID")
 KAKAO_API_KEY = os.environ.get("kAKAO_REST_KEY")
 MY_IPS = {ip.strip() for ip in os.environ.get("MY_IP", "").split(",") if ip.strip()}
+NTFY_TOPIC = os.environ.get("NTFY_TOPIC", "")
 
 from flask import (
     Flask,
@@ -313,6 +314,23 @@ def prune_old_daily(daily, keep_days=90):
             del daily[d]
 
 
+def notify_new_visit(today_count, total_count):
+    if not NTFY_TOPIC:
+        return
+    try:
+        requests.post(
+            "https://" + "ntfy.sh/" + NTFY_TOPIC,
+            data=f"오늘 {today_count}번째 방문 (누적 {total_count})".encode("utf-8"),
+            headers={
+                "Title": "당근이의 핫플 지도 방문".encode("utf-8"),
+                "Tags": "eyes",
+            },
+            timeout=5,
+        )
+    except Exception as e:
+        print(f"ntfy 알림 실패: {e}")
+
+
 @app.route("/api/view-count")
 def api_view_count():
     data = load_view_counts()
@@ -323,6 +341,7 @@ def api_view_count():
         data["daily"][today] = data["daily"].get(today, 0) + 1
         prune_old_daily(data["daily"])
         save_view_counts(data)
+        notify_new_visit(data["daily"][today], data["total"])
 
     return jsonify({
         "today": data["daily"].get(today, 0),
