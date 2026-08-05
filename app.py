@@ -7,7 +7,7 @@ NOTION_TOKEN = os.environ.get("NOTION_TOKEN")
 NOTION_HOT_DB_ID = os.environ.get("NOTION_HOT_DB_ID")
 NOTION_COMPANY_DB_ID = os.environ.get("NOTION_COMPANY_DB_ID")
 KAKAO_API_KEY = os.environ.get("kAKAO_REST_KEY")
-MY_IP = os.environ.get("MY_IP", "")
+MY_IPS = {ip.strip() for ip in os.environ.get("MY_IP", "").split(",") if ip.strip()}
 
 from flask import (
     Flask,
@@ -318,7 +318,7 @@ def api_view_count():
     data = load_view_counts()
     today = date.today().isoformat()
 
-    if request.remote_addr != MY_IP:
+    if request.remote_addr not in MY_IPS:
         data["total"] += 1
         data["daily"][today] = data["daily"].get(today, 0) + 1
         prune_old_daily(data["daily"])
