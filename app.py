@@ -253,6 +253,7 @@ def _boundary_display_name(filename: str) -> str:
     name = re.sub(r"\.(txt|geojson|json)$", "", name, flags=re.I)
     name = re.sub(r"[ _]*바운더리리?", "", name)
     name = re.sub(r"[ _]*boundary", "", name, flags=re.I)
+    name = re.sub(r"[ _]*hangjeongdong[ _]*", " ", name, flags=re.I)
     name = re.sub(r"[ _]+", " ", name).strip()
     if not name:
         name = filename

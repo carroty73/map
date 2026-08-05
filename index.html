@@ -21,7 +21,7 @@
       </div>
 
       <div class="sidebar__search">
-        <input type="search" placeholder="예: 신화 짬뽕" disabled>
+        <input type="search" id="search-input" placeholder="예: 신화 짬뽕" autocomplete="off">
       </div>
 
       <div class="sidebar__tabs">
@@ -64,13 +64,9 @@
             <button type="button"><span class="icon"><img src="/static/ico/pack_2/08_move.png" alt=""></span><span>교통</span></button>
           </div>
 
-          <div class="sidebar__section-title">장소 목록 (자리표시자)</div>
-          <ul class="sidebar__list">
-            <li>네오시그널</li>
-            <li>경원 하네스</li>
-            <li>아트웍 서킷</li>
-            <li>회로로 컴퍼니</li>
-            <li>한빛 정밀</li>
+          <div class="sidebar__section-title" id="place-list-title">장소 목록</div>
+          <ul class="sidebar__list" id="place-list">
+            <li class="sidebar__list-empty">검색어를 입력해 보세요.</li>
           </ul>
 
           <!-- 1. 광고 (자리표시자) -->
@@ -189,10 +185,21 @@
   <script>
     const map = L.map("map", { zoomControl: false, attributionControl: false })
       .setView([37.738060, 127.046110], 13);
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
-      attribution: "&copy; OpenStreetMap, CARTO",
-      maxZoom: 20,
-    }).addTo(map);
+    // ===== 지도 배경(밝게/어둡게/일반) =====
+    const baseMaps = {
+      "밝은 지도": L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+        attribution: "&copy; OpenStreetMap, CARTO", maxZoom: 20,
+      }),
+      "어두운 지도": L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+        attribution: "&copy; OpenStreetMap, CARTO", maxZoom: 20,
+      }),
+      "기본 지도": L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: "&copy; OpenStreetMap", maxZoom: 19,
+      }),
+    };
+    baseMaps["밝은 지도"].addTo(map);
+    // 배경/경계 토글을 모아 보여줄 레이어 컨트롤 (버튼 하나, 클릭하면 펼쳐짐).
+    const layerControl = L.control.layers(baseMaps, {}, { collapsed: true, position: "topright" }).addTo(map);
     // 기본 위치(우하단)가 우리 커스텀 확대/축소 버튼과 겹쳐서 왼쪽 아래로 옮긴다.
     L.control.attribution({ position: "bottomleft" }).addTo(map);
 
@@ -263,6 +270,10 @@
 
     // groups[domain][category] = L.layerGroup()
     const groups = {};
+    // categoryButtonMap[domain][category] = button element (카테고리 버튼 on/off 상태 참조용)
+    const categoryButtonMap = {};
+    // 검색용 평면 목록: { name, address, category, domain, lat, lon, marker, group }
+    const placeIndex = [];
 
     function ensureGroup(domain, category) {
       if (!groups[domain]) groups[domain] = {};
@@ -302,9 +313,14 @@
           '<div class="company-popup"><b>' + escapeHtml(p.name) + "</b><br/>" +
             escapeHtml(p.category) + "<br/>" +
             escapeHtml(p.address || "") +
+            (p.url ? '<br/><a href="' + escapeHtml(p.url) + '" target="_blank" rel="noopener">자세히 보기</a>' : "") +
           "</div>"
         );
         marker.addTo(group);
+        placeIndex.push({
+          name: p.name, address: p.address || "", category: p.category, domain: p.domain,
+          lat: p.lat, lon: p.lon, marker: marker, group: group, url: p.url || "",
+        });
       });
       applyDomainVisibility(activeDomain);
     }
@@ -325,15 +341,18 @@
           group.hidden = group.getAttribute("data-domain") !== domain;
         });
         applyDomainVisibility(domain);
+        clearSearchResults();
       });
     });
 
     // 카테고리 아이콘 버튼: 클릭하면 해당 카테고리 마커만 켜고 끈다.
     categoryGroups.forEach(function (panel) {
       const domain = panel.getAttribute("data-domain");
+      categoryButtonMap[domain] = {};
       panel.querySelectorAll("button").forEach(function (btn) {
         const label = btn.querySelector("span:last-child").textContent.trim();
         const category = companyLabelToCategory[label] || label;
+        categoryButtonMap[domain][category] = btn;
         btn.addEventListener("click", function () {
           btn.classList.toggle("is-off");
           const g = groups[domain] && groups[domain][category];
@@ -347,6 +366,148 @@
       });
     });
 
+    // ===== 검색 =====
+    const searchInput = document.getElementById("search-input");
+    const placeListEl = document.getElementById("place-list");
+    const placeListTitleEl = document.getElementById("place-list-title");
+    const placeListDefaultHtml = placeListEl.innerHTML;
+    const placeListDefaultTitle = placeListTitleEl.textContent;
+
+    function normalize(s) {
+      return String(s || "").toLowerCase().replace(/\s+/g, "").trim();
+    }
+
+    function findPlaces(query, domain) {
+      const q = normalize(query);
+      if (!q) return [];
+      const pool = placeIndex.filter(function (p) { return p.domain === domain; });
+      const exact = pool.filter(function (p) { return normalize(p.name) === q; });
+      if (exact.length) return exact;
+      const byName = pool.filter(function (p) { return normalize(p.name).indexOf(q) !== -1; });
+      if (byName.length) return byName;
+      return pool.filter(function (p) { return normalize(p.address).indexOf(q) !== -1; });
+    }
+
+    function blinkMarker(marker) {
+      const el = marker.getElement && marker.getElement();
+      if (!el) return;
+      el.classList.remove("blink-marker");
+      void el.offsetWidth;
+      el.classList.add("blink-marker");
+    }
+
+    function goToPlace(item) {
+      if (item.group && !map.hasLayer(item.group)) map.addLayer(item.group);
+      const btn = categoryButtonMap[item.domain] && categoryButtonMap[item.domain][item.category];
+      if (btn) btn.classList.remove("is-off");
+      map.flyTo([item.lat, item.lon], 17, { duration: 0.85 });
+      setTimeout(function () {
+        item.marker.openPopup();
+        blinkMarker(item.marker);
+      }, 900);
+    }
+
+    function clearSearchResults() {
+      placeListEl.innerHTML = placeListDefaultHtml;
+      placeListTitleEl.textContent = placeListDefaultTitle;
+    }
+
+    function renderSearchResults(items) {
+      placeListTitleEl.textContent = "검색 결과 (" + items.length + "건)";
+      placeListEl.innerHTML = "";
+      if (!items.length) {
+        const li = document.createElement("li");
+        li.className = "sidebar__list-empty";
+        li.textContent = "검색 결과가 없습니다.";
+        placeListEl.appendChild(li);
+        return;
+      }
+      items.forEach(function (item) {
+        const li = document.createElement("li");
+        li.className = "sidebar__list-item";
+        li.innerHTML =
+          '<span class="sidebar__list-item-name">' + escapeHtml(item.name) + "</span>" +
+          '<span class="sidebar__list-item-addr">' + escapeHtml(item.address) + "</span>" +
+          (item.url ? '<a class="sidebar__list-item-link" href="' + escapeHtml(item.url) +
+            '" target="_blank" rel="noopener">자세히 보기</a>' : "");
+        li.addEventListener("click", function () { goToPlace(item); });
+        const link = li.querySelector(".sidebar__list-item-link");
+        if (link) link.addEventListener("click", function (e) { e.stopPropagation(); });
+        placeListEl.appendChild(li);
+      });
+    }
+
+    searchInput.addEventListener("input", function () {
+      const q = searchInput.value.trim();
+      if (!q) { clearSearchResults(); return; }
+      renderSearchResults(findPlaces(q, activeDomain));
+    });
+
+    searchInput.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        const found = findPlaces(searchInput.value.trim(), activeDomain);
+        if (found.length) goToPlace(found[0]);
+      } else if (e.key === "Escape") {
+        clearSearchResults();
+      }
+    });
+
+    // ===== 경계선(행정동) =====
+    const BOUNDARY_COLORS = [
+      { fill: "#3388ff", line: "#1a4f99" },
+      { fill: "#e67e00", line: "#a85a00" },
+      { fill: "#27ae60", line: "#1e8449" },
+      { fill: "#8e44ad", line: "#6c3483" },
+      { fill: "#c0392b", line: "#922b21" },
+      { fill: "#16a085", line: "#0e6655" },
+    ];
+
+    async function setupBoundaries() {
+      let list = [];
+      try {
+        const res = await fetch("/api/boundaries");
+        if (res.ok) {
+          const data = await res.json();
+          list = data.boundaries || [];
+        }
+      } catch (err) {
+        console.warn("경계 목록을 불러오지 못했습니다.", err);
+        return;
+      }
+      if (!list.length) return;
+
+      const loadedUrls = {};
+
+      list.forEach(function (item, i) {
+        const color = BOUNDARY_COLORS[i % BOUNDARY_COLORS.length];
+        const layer = L.layerGroup();
+        // 체크박스로 처음 켤 때만 실제 geojson을 내려받는다 (17개 전부 미리 받으면 너무 무거움).
+        layer.on("add", function () {
+          if (loadedUrls[item.url]) return;
+          loadedUrls[item.url] = true;
+          fetch(item.url)
+            .then(function (r) { return r.json(); })
+            .then(function (geo) {
+              L.geoJSON(geo, {
+                style: { fillColor: color.fill, color: color.line, weight: 2, fillOpacity: 0.08 },
+              }).addTo(layer);
+            })
+            .catch(function (err) {
+              console.warn("경계 로드 실패:", item.url, err);
+              delete loadedUrls[item.url];
+            });
+        });
+        layerControl.addOverlay(layer, item.name);
+
+        // 기본값: 서울만 켜둔다.
+        if (item.filename && item.filename.indexOf("서울") !== -1) {
+          map.addLayer(layer);
+        }
+      });
+    }
+
+    setupBoundaries();
     loadPlaces();
 
     // 사이드바 접기/펼치기 토글: 접으면 왼쪽으로 숨으면서 아이콘만 남은 좁은 형태가 된다.
