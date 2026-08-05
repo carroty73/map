@@ -205,6 +205,27 @@ html, body {
   font-weight: 600;
 }
 
+.company-popup__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.fav-star {
+  border: none;
+  background: none;
+  padding: 0;
+  font-size: 16px;
+  line-height: 1;
+  color: #ccc;
+  cursor: pointer;
+}
+
+.fav-star.is-favorite {
+  color: #ffb400;
+}
+
 .blink-marker {
   animation: marker-blink 0.5s ease-in-out 4;
 }
@@ -247,6 +268,13 @@ html, body {
 
 .sidebar__list-item:hover {
   background: #fff2e6;
+}
+
+.sidebar__list-item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
 
 .sidebar__list-item-name {
@@ -456,6 +484,20 @@ html, body {
 
 .register-form .form-row .form-field {
   flex: 1;
+}
+
+.register-msg {
+  min-height: 18px;
+  margin: -4px 0 10px;
+  font-size: 13px;
+}
+
+.register-msg.is-ok {
+  color: #1e8449;
+}
+
+.register-msg.is-error {
+  color: #c0392b;
 }
 
 .register-form .form-submit {

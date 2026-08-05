@@ -7,7 +7,7 @@ rsc 없음. 공개 파일은 전부 static/.
 ----
 company/
   app.py
-  index.html                 → /company/
+  index.html                 → /map
   templates/intro.html       → /
   static/
     css/intro.css, company.css
@@ -40,7 +40,7 @@ company/
   /static/img/coffee.png
   /static/img/company-og.png
   /
-  /company/
+  /map
 
 서버에 둘 때
 ------------

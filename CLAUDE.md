@@ -39,7 +39,7 @@ python app.py
 
 - **`app.py`** — 백엔드 전체. 주요 역할:
   - `/`는 `templates/intro.html`(랜딩 페이지)을 렌더링합니다.
-  - `/company/`는 `send_file`로 `index.html`을 직접 서빙합니다(지도 페이지).
+  - `/map`은 `send_file`로 `index.html`을 직접 서빙합니다(지도 페이지).
     이 라우트는 Jinja `url_for` 대신 `send_file`/`/static/...` 경로를 사용하므로,
     `index.html`의 에셋 URL은 하드코딩된 절대 경로입니다 — 정적 에셋을 이동/이름
     변경할 때 이 점을 유의해야 합니다.

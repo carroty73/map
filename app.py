@@ -6,7 +6,7 @@ load_dotenv()
 NOTION_TOKEN = os.environ.get("NOTION_TOKEN")
 NOTION_HOT_DB_ID = os.environ.get("NOTION_HOT_DB_ID")
 NOTION_COMPANY_DB_ID = os.environ.get("NOTION_COMPANY_DB_ID")
-KAKAO_API_KEY = os.environ.get("KAKAO_API_KEY")
+KAKAO_API_KEY = os.environ.get("kAKAO_REST_KEY")
 
 from flask import (
     Flask,
@@ -158,8 +158,8 @@ def index():
     return render_template("intro.html")
 
 
-@app.route("/company/")
-def company():
+@app.route("/map")
+def map_page():
     return send_file("index.html")
 
 
@@ -221,6 +221,70 @@ def api_places():
     })
 
 
+DB_ID_BY_DOMAIN = {d["key"]: d["db_id"] for d in DOMAINS}
+
+
+def create_notion_place(db_id, name, address, category, lat, lon, phone, memo):
+    url = "https://" + "api.notion.com/v1/pages"
+    properties = {
+        "상호": {"title": [{"text": {"content": name}}]},
+        "주소": {"rich_text": [{"text": {"content": address}}]},
+        "카테고리": {"select": {"name": category}},
+        "위도": {"number": lat},
+        "경도": {"number": lon},
+        "숨김": {"checkbox": False},
+    }
+    if phone:
+        properties["전화번호"] = {"phone_number": phone}
+    if memo:
+        properties["메모"] = {"rich_text": [{"text": {"content": memo}}]}
+
+    payload = {"parent": {"database_id": db_id}, "properties": properties}
+    res = requests.post(url, headers=NOTION_HEADERS, json=payload, timeout=15)
+    if res.status_code not in (200, 201):
+        raise RuntimeError(f"노션 등록 실패: {res.status_code} {res.text}")
+    return res.json()
+
+
+@app.route("/api/register", methods=["POST"])
+def api_register():
+    data = request.get_json(silent=True) or {}
+    domain = data.get("domain")
+    name = (data.get("name") or "").strip()
+    address = (data.get("address") or "").strip()
+    category = (data.get("category") or "기타").strip()
+    phone = (data.get("phone") or "").strip()
+    memo = (data.get("memo") or "").strip()
+
+    if domain not in DB_ID_BY_DOMAIN or not DB_ID_BY_DOMAIN[domain]:
+        return jsonify({"error": "잘못된 분류입니다."}), 400
+    if not name or not address:
+        return jsonify({"error": "상호와 주소를 입력해주세요."}), 400
+    if category not in CATEGORY_VISIBLE.get(domain, {}):
+        return jsonify({"error": "잘못된 카테고리입니다."}), 400
+
+    lat, lon = get_kakao_coords(address)
+    if lat is None or lon is None:
+        return jsonify({"error": "주소로 좌표를 찾지 못했습니다. 주소를 다시 확인해주세요."}), 400
+
+    try:
+        page = create_notion_place(
+            DB_ID_BY_DOMAIN[domain], name, address, category, lat, lon, phone, memo
+        )
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+    return jsonify({
+        "place": {
+            "name": name,
+            "address": address,
+            "category": category,
+            "domain": domain,
+            "lat": lat,
+            "lon": lon,
+            "url": page.get("url", "#"),
+        }
+    })
 
 
 @app.route("/count.txt")

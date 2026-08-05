@@ -35,7 +35,7 @@
       <div class="sidebar__panels">
         <div id="panel-search" class="sidebar__panel active">
           <!-- 맛집/회사 토글: 아래 카테고리 아이콘 세트만 바뀐다 (되돌리기 쉬움) -->
-          <div class="domain-toggle">
+          <div class="domain-toggle" id="search-domain-toggle">
             <button type="button" class="active" data-domain="company">회사</button>
             <button type="button" data-domain="hotspot">맛집</button>
           </div>
@@ -95,17 +95,16 @@
         </div>
 
         <div id="panel-favorite" class="sidebar__panel">
-          <ul class="sidebar__list">
-            <li>신화 짬뽕</li>
-            <li>경원 하네스</li>
-            <li>아트웍 서킷</li>
-            <li>한강약국</li>
-            <li>조아약국</li>
-          </ul>
+          <ul class="sidebar__list" id="favorite-list"></ul>
         </div>
 
         <div id="panel-register" class="sidebar__panel">
-          <form class="register-form">
+          <form class="register-form" id="register-form">
+            <div class="domain-toggle" id="register-domain-toggle">
+              <button type="button" class="active" data-domain="company">회사</button>
+              <button type="button" data-domain="hotspot">맛집</button>
+            </div>
+
             <div class="form-field">
               <label for="reg-name">상호</label>
               <input id="reg-name" type="text" placeholder="예: 신화 짬뽕">
@@ -119,17 +118,7 @@
             <div class="form-row">
               <div class="form-field">
                 <label for="reg-category">카테고리</label>
-                <select id="reg-category">
-                  <option>볼 거리</option>
-                  <option>알아갈 거리</option>
-                  <option>마실 거리</option>
-                  <option>먹을 거리</option>
-                  <option>즐길 거리</option>
-                  <option>쉴 거리</option>
-                  <option>숙소</option>
-                  <option>교통</option>
-                  <option>기타</option>
-                </select>
+                <select id="reg-category"></select>
               </div>
 
               <div class="form-field">
@@ -143,7 +132,9 @@
               <textarea id="reg-memo" placeholder="참고할 내용을 적어주세요"></textarea>
             </div>
 
-            <button class="form-submit" type="button">등록하기</button>
+            <div id="register-msg" class="register-msg"></div>
+
+            <button class="form-submit" type="submit" id="register-submit">등록하기</button>
           </form>
         </div>
 
@@ -272,8 +263,97 @@
     const groups = {};
     // categoryButtonMap[domain][category] = button element (카테고리 버튼 on/off 상태 참조용)
     const categoryButtonMap = {};
-    // 검색용 평면 목록: { name, address, category, domain, lat, lon, marker, group }
+    // 검색용 평면 목록: { id, name, address, category, domain, lat, lon, marker, group, url }
     const placeIndex = [];
+
+    // ===== 즐겨찾기 (localStorage) =====
+    const FAVORITES_KEY = "carroty_favorites";
+    let favorites = [];
+    try {
+      favorites = JSON.parse(localStorage.getItem(FAVORITES_KEY) || "[]");
+    } catch (err) {
+      favorites = [];
+    }
+
+    function makePlaceId(p) {
+      return p.domain + "|" + p.name + "|" + p.address;
+    }
+
+    function isFavorite(id) {
+      return favorites.some(function (f) { return f.id === id; });
+    }
+
+    function saveFavorites() {
+      localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
+    }
+
+    function toggleFavorite(item) {
+      if (isFavorite(item.id)) {
+        favorites = favorites.filter(function (f) { return f.id !== item.id; });
+      } else {
+        // marker/group 같은 Leaflet 객체는 저장하지 않고 필요한 값만 뽑아서 저장한다.
+        favorites.push({
+          id: item.id, name: item.name, address: item.address, category: item.category,
+          domain: item.domain, lat: item.lat, lon: item.lon, url: item.url || "",
+        });
+      }
+      saveFavorites();
+      syncFavoriteButtons(item.id);
+      renderFavoritesPanel();
+    }
+
+    function syncFavoriteButtons(id) {
+      const fav = isFavorite(id);
+      document.querySelectorAll("[data-fav-id]").forEach(function (btn) {
+        if (btn.getAttribute("data-fav-id") !== id) return;
+        btn.textContent = fav ? "★" : "☆";
+        btn.classList.toggle("is-favorite", fav);
+      });
+    }
+
+    function favStarHtml(id) {
+      const fav = isFavorite(id);
+      return '<button type="button" class="fav-star' + (fav ? " is-favorite" : "") +
+        '" data-fav-id="' + escapeHtml(id) + '" title="즐겨찾기">' + (fav ? "★" : "☆") + "</button>";
+    }
+
+    function renderFavoritesPanel() {
+      const el = document.getElementById("favorite-list");
+      if (!el) return;
+      el.innerHTML = "";
+      if (!favorites.length) {
+        const li = document.createElement("li");
+        li.className = "sidebar__list-empty";
+        li.textContent = "즐겨찾기한 장소가 없습니다.";
+        el.appendChild(li);
+        return;
+      }
+      favorites.forEach(function (item) {
+        const li = document.createElement("li");
+        li.className = "sidebar__list-item";
+        li.innerHTML =
+          '<div class="sidebar__list-item-row">' +
+            '<span class="sidebar__list-item-name">' + escapeHtml(item.name) + "</span>" +
+            favStarHtml(item.id) +
+          "</div>" +
+          '<span class="sidebar__list-item-addr">' + escapeHtml(item.address) + "</span>" +
+          (item.url ? '<a class="sidebar__list-item-link" href="' + escapeHtml(item.url) +
+            '" target="_blank" rel="noopener">자세히 보기</a>' : "");
+        const star = li.querySelector(".fav-star");
+        star.addEventListener("click", function (e) { e.stopPropagation(); toggleFavorite(item); });
+        const link = li.querySelector(".sidebar__list-item-link");
+        if (link) link.addEventListener("click", function (e) { e.stopPropagation(); });
+        li.addEventListener("click", function () {
+          const found = placeIndex.find(function (p) { return p.id === item.id; });
+          if (found) {
+            goToPlace(found);
+          } else {
+            map.flyTo([item.lat, item.lon], 17, { duration: 0.85 });
+          }
+        });
+        el.appendChild(li);
+      });
+    }
 
     function ensureGroup(domain, category) {
       if (!groups[domain]) groups[domain] = {};
@@ -294,6 +374,37 @@
       });
     }
 
+    function addPlaceMarker(p) {
+      const group = ensureGroup(p.domain, p.category);
+      const marker = L.marker([p.lat, p.lon], {
+        icon: makeIcon(p.domain, p.category),
+        title: p.name,
+      });
+      const item = {
+        id: makePlaceId(p), name: p.name, address: p.address || "", category: p.category,
+        domain: p.domain, lat: p.lat, lon: p.lon, marker: marker, group: group, url: p.url || "",
+      };
+      marker.bindPopup(
+        '<div class="company-popup">' +
+          '<div class="company-popup__row"><b>' + escapeHtml(p.name) + "</b>" + favStarHtml(item.id) + "</div>" +
+          escapeHtml(p.category) + "<br/>" +
+          escapeHtml(p.address || "") +
+          (p.url ? '<br/><a href="' + escapeHtml(p.url) + '" target="_blank" rel="noopener">자세히 보기</a>' : "") +
+        "</div>"
+      );
+      marker.on("popupopen", function (e) {
+        const popupEl = e.popup.getElement();
+        const star = popupEl && popupEl.querySelector(".fav-star");
+        if (star) star.addEventListener("click", function (ev) {
+          ev.stopPropagation();
+          toggleFavorite(item);
+        });
+      });
+      marker.addTo(group);
+      placeIndex.push(item);
+      return item;
+    }
+
     async function loadPlaces() {
       let data;
       try {
@@ -303,32 +414,14 @@
         console.error("장소 데이터를 불러오지 못했습니다.", err);
         return;
       }
-      (data.places || []).forEach(function (p) {
-        const group = ensureGroup(p.domain, p.category);
-        const marker = L.marker([p.lat, p.lon], {
-          icon: makeIcon(p.domain, p.category),
-          title: p.name,
-        });
-        marker.bindPopup(
-          '<div class="company-popup"><b>' + escapeHtml(p.name) + "</b><br/>" +
-            escapeHtml(p.category) + "<br/>" +
-            escapeHtml(p.address || "") +
-            (p.url ? '<br/><a href="' + escapeHtml(p.url) + '" target="_blank" rel="noopener">자세히 보기</a>' : "") +
-          "</div>"
-        );
-        marker.addTo(group);
-        placeIndex.push({
-          name: p.name, address: p.address || "", category: p.category, domain: p.domain,
-          lat: p.lat, lon: p.lon, marker: marker, group: group, url: p.url || "",
-        });
-      });
+      (data.places || []).forEach(function (p) { addPlaceMarker(p); });
       applyDomainVisibility(activeDomain);
     }
 
     // 검색 패널 안의 맛집/회사 토글: 아래 카테고리 아이콘 세트 + 지도 위 마커를 함께 바꾼다.
-    const domainButtons = document.querySelectorAll(".domain-toggle button");
+    const domainButtons = document.querySelectorAll("#search-domain-toggle button");
     const categoryGroups = document.querySelectorAll(".sidebar__categories");
-    let activeDomain = document.querySelector(".domain-toggle button.active").getAttribute("data-domain");
+    let activeDomain = document.querySelector("#search-domain-toggle button.active").getAttribute("data-domain");
 
     domainButtons.forEach(function (btn) {
       btn.addEventListener("click", function () {
@@ -426,11 +519,16 @@
         const li = document.createElement("li");
         li.className = "sidebar__list-item";
         li.innerHTML =
-          '<span class="sidebar__list-item-name">' + escapeHtml(item.name) + "</span>" +
+          '<div class="sidebar__list-item-row">' +
+            '<span class="sidebar__list-item-name">' + escapeHtml(item.name) + "</span>" +
+            favStarHtml(item.id) +
+          "</div>" +
           '<span class="sidebar__list-item-addr">' + escapeHtml(item.address) + "</span>" +
           (item.url ? '<a class="sidebar__list-item-link" href="' + escapeHtml(item.url) +
             '" target="_blank" rel="noopener">자세히 보기</a>' : "");
         li.addEventListener("click", function () { goToPlace(item); });
+        const star = li.querySelector(".fav-star");
+        star.addEventListener("click", function (e) { e.stopPropagation(); toggleFavorite(item); });
         const link = li.querySelector(".sidebar__list-item-link");
         if (link) link.addEventListener("click", function (e) { e.stopPropagation(); });
         placeListEl.appendChild(li);
@@ -507,8 +605,91 @@
       });
     }
 
+    // ===== 등록 =====
+    const registerDomainButtons = document.querySelectorAll("#register-domain-toggle button");
+    const registerCategorySelect = document.getElementById("reg-category");
+    const registerForm = document.getElementById("register-form");
+    const registerMsgEl = document.getElementById("register-msg");
+    const registerSubmitBtn = document.getElementById("register-submit");
+    let registerDomain = document.querySelector("#register-domain-toggle button.active").getAttribute("data-domain");
+
+    function registerCategoriesFor(domain) {
+      return domain === "company" ? Object.keys(companyIconEmoji) : Object.keys(hotspotIconFiles);
+    }
+
+    function populateRegisterCategories(domain) {
+      registerCategorySelect.innerHTML = "";
+      registerCategoriesFor(domain).forEach(function (cat) {
+        const opt = document.createElement("option");
+        opt.value = cat;
+        opt.textContent = cat;
+        registerCategorySelect.appendChild(opt);
+      });
+    }
+
+    populateRegisterCategories(registerDomain);
+
+    registerDomainButtons.forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        registerDomainButtons.forEach(function (b) { b.classList.remove("active"); });
+        btn.classList.add("active");
+        registerDomain = btn.getAttribute("data-domain");
+        populateRegisterCategories(registerDomain);
+      });
+    });
+
+    function setRegisterMsg(text, kind) {
+      registerMsgEl.textContent = text || "";
+      registerMsgEl.className = "register-msg" + (kind ? " is-" + kind : "");
+    }
+
+    registerForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+      const name = document.getElementById("reg-name").value.trim();
+      const address = document.getElementById("reg-address").value.trim();
+      const category = registerCategorySelect.value;
+      const phone = document.getElementById("reg-contact").value.trim();
+      const memo = document.getElementById("reg-memo").value.trim();
+
+      if (!name || !address) {
+        setRegisterMsg("상호와 주소를 입력해주세요.", "error");
+        return;
+      }
+
+      registerSubmitBtn.disabled = true;
+      setRegisterMsg("등록 중...", "");
+
+      fetch("/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          domain: registerDomain, name: name, address: address,
+          category: category, phone: phone, memo: memo,
+        }),
+      })
+        .then(function (res) { return res.json().then(function (body) { return { ok: res.ok, body: body }; }); })
+        .then(function (result) {
+          if (!result.ok) {
+            setRegisterMsg(result.body.error || "등록에 실패했습니다.", "error");
+            return;
+          }
+          addPlaceMarker(result.body.place);
+          if (registerDomain === activeDomain) applyDomainVisibility(activeDomain);
+          setRegisterMsg(name + " 등록되었습니다!", "ok");
+          registerForm.reset();
+          populateRegisterCategories(registerDomain);
+        })
+        .catch(function () {
+          setRegisterMsg("등록 중 오류가 발생했습니다.", "error");
+        })
+        .finally(function () {
+          registerSubmitBtn.disabled = false;
+        });
+    });
+
     setupBoundaries();
     loadPlaces();
+    renderFavoritesPanel();
 
     // 사이드바 접기/펼치기 토글: 접으면 왼쪽으로 숨으면서 아이콘만 남은 좁은 형태가 된다.
     const sidebar = document.getElementById("sidebar");
