@@ -1,0 +1,149 @@
+/* 회사 소개 페이지 디자인 샘플 (정적, 데이터 미연동) */
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: "Pretendard", -apple-system, sans-serif;
+  background: #f5f5f5;
+  color: #222;
+}
+
+.top-bar {
+  background: #ff8a3d;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.top-bar a {
+  color: #fff;
+  text-decoration: none;
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.top-bar a:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+.page {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 24px 20px 60px;
+}
+
+.hero {
+  background: #fff;
+  border-radius: 14px;
+  padding: 28px 24px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  margin-bottom: 16px;
+}
+
+.hero__logo {
+  width: 72px;
+  height: 72px;
+  min-width: 72px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.hero__title {
+  flex: 1;
+}
+
+.hero__title h1 {
+  margin: 0 0 6px;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.badge {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #ff8a3d;
+  background: #fff2e6;
+  border: 1px solid #ffd9b8;
+  border-radius: 999px;
+  padding: 3px 10px;
+}
+
+.card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 22px 24px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  margin-bottom: 16px;
+}
+
+.card h2 {
+  margin: 0 0 12px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #444;
+}
+
+.card p.desc {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.7;
+  color: #333;
+}
+
+.contact-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.contact-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+}
+
+.contact-list .icon {
+  width: 20px;
+  text-align: center;
+}
+
+.contact-list a {
+  color: #333;
+  text-decoration: none;
+}
+
+.contact-list a:hover {
+  color: #ff8a3d;
+}
+
+#map {
+  width: 100%;
+  height: 260px;
+  border-radius: 10px;
+  margin-top: 4px;
+}
+
+.address {
+  font-size: 13px;
+  color: #666;
+  margin: 10px 0 0;
+}

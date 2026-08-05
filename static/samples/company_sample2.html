@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>카페 온기 - 회사 소개</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" as="style" crossorigin
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="company_detail.css">
+</head>
+<body>
+  <div class="top-bar">
+    <a href="../../company/">&larr; 지도로 돌아가기</a>
+  </div>
+
+  <div class="page">
+    <div class="hero">
+      <div class="hero__logo" style="background:#7a5230;">온기</div>
+      <div class="hero__title">
+        <h1>카페 온기</h1>
+        <span class="badge">마실 거리 · 카페</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>소개</h2>
+      <p class="desc">
+        카페 온기는 직접 로스팅한 원두로 커피를 내리는 동네 카페입니다.
+        조용히 작업하기 좋은 2층 좌석과 반려동물 동반 가능한 테라스를 갖추고 있어
+        주민들의 사랑방 같은 공간으로 자리잡았습니다.
+      </p>
+    </div>
+
+    <div class="card">
+      <h2>연락처</h2>
+      <ul class="contact-list">
+        <li><span class="icon">📞</span> <a href="tel:031-234-5678">031-234-5678</a></li>
+        <li><span class="icon">✉️</span> <a href="mailto:hello@cafe-ongi.kr">hello@cafe-ongi.kr</a></li>
+        <li><span class="icon">📷</span> <a href="#" target="_blank" rel="noopener">@cafe_ongi</a></li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>위치</h2>
+      <div id="map"></div>
+      <p class="address">경기도 의정부시 회룡로 12 (가상 주소 · 샘플용)</p>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    const map = L.map('map', { zoomControl: false, attributionControl: false })
+      .setView([37.7412, 127.0489], 16);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+    L.marker([37.7412, 127.0489]).addTo(map);
+  </script>
+</body>
+</html>

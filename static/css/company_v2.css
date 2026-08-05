@@ -168,6 +168,37 @@ html, body {
   color: #444;
 }
 
+.sidebar__categories button.is-off .icon {
+  opacity: 0.35;
+}
+
+.sidebar__categories button.is-off span:last-child {
+  color: #aaa;
+}
+
+.company-marker-icon {
+  background: none;
+  border: none;
+}
+
+.company-marker-emoji {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #fff;
+  border: 1px solid #ddd;
+  font-size: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.company-popup {
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 .sidebar__section-title {
   padding: 8px 16px;
   font-size: 13px;

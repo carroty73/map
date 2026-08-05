@@ -187,7 +187,6 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    // 지도만 띄운다 (마커/검색 연동은 나중에).
     const map = L.map("map", { zoomControl: false, attributionControl: false })
       .setView([37.738060, 127.046110], 13);
     L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
@@ -218,9 +217,102 @@
       });
     });
 
-    // 검색 패널 안의 맛집/회사 토글: 아래 카테고리 아이콘 세트만 바뀐다.
+    // ===== 마커 데이터 연동 (회사 DB / 핫플 DB) =====
+    const ICON_DIR = "/static/ico/pack_2";
+    const hotspotIconFiles = {
+      "볼 거리": "01_see.png", "알아갈 거리": "02_learn.png", "마실 거리": "03_drink.png",
+      "먹을 거리": "04_eat.png", "즐길 거리": "05_play.png", "쉴 거리": "06_rest.png",
+      "숙소": "07_stay.png", "교통": "08_move.png", "기타": "09_other.png",
+    };
+    const companyIconEmoji = {
+      "펌웨어": "💾", "회로설계": "🔌", "PCB 아트웍": "🖊️", "PCB 제작": "🏭",
+      "SMT / 조립 / 하네스": "🔧", "부품 유통": "📦", "기구설계 / CNC": "🛠️",
+      "기구 / 케이스": "🧰", "계측 / 시험 / 인증": "📏", "기타": "➕",
+    };
+    // 카테고리 버튼 라벨(공백 없음) → 노션 카테고리 값(공백 있음) 대응.
+    const companyLabelToCategory = {
+      "SMT/조립/하네스": "SMT / 조립 / 하네스",
+      "기구설계/CNC": "기구설계 / CNC",
+      "기구/케이스": "기구 / 케이스",
+      "계측/시험/인증": "계측 / 시험 / 인증",
+    };
+
+    function escapeHtml(s) {
+      return String(s || "").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    function makeIcon(domain, category) {
+      if (domain === "company") {
+        const emoji = companyIconEmoji[category] || companyIconEmoji["기타"];
+        return L.divIcon({
+          html: '<span class="company-marker-emoji">' + emoji + "</span>",
+          className: "company-marker-icon",
+          iconSize: [30, 30],
+          iconAnchor: [15, 15],
+          popupAnchor: [0, -12],
+        });
+      }
+      const file = hotspotIconFiles[category] || hotspotIconFiles["기타"];
+      return L.icon({
+        iconUrl: ICON_DIR + "/" + file,
+        iconSize: [30, 30],
+        iconAnchor: [15, 15],
+        popupAnchor: [0, -12],
+      });
+    }
+
+    // groups[domain][category] = L.layerGroup()
+    const groups = {};
+
+    function ensureGroup(domain, category) {
+      if (!groups[domain]) groups[domain] = {};
+      if (!groups[domain][category]) groups[domain][category] = L.layerGroup();
+      return groups[domain][category];
+    }
+
+    function applyDomainVisibility(domain) {
+      Object.keys(groups).forEach(function (d) {
+        Object.keys(groups[d]).forEach(function (cat) {
+          const g = groups[d][cat];
+          if (map.hasLayer(g)) map.removeLayer(g);
+        });
+      });
+      if (!groups[domain]) return;
+      Object.keys(groups[domain]).forEach(function (cat) {
+        map.addLayer(groups[domain][cat]);
+      });
+    }
+
+    async function loadPlaces() {
+      let data;
+      try {
+        const res = await fetch("/api/places");
+        data = await res.json();
+      } catch (err) {
+        console.error("장소 데이터를 불러오지 못했습니다.", err);
+        return;
+      }
+      (data.places || []).forEach(function (p) {
+        const group = ensureGroup(p.domain, p.category);
+        const marker = L.marker([p.lat, p.lon], {
+          icon: makeIcon(p.domain, p.category),
+          title: p.name,
+        });
+        marker.bindPopup(
+          '<div class="company-popup"><b>' + escapeHtml(p.name) + "</b><br/>" +
+            escapeHtml(p.category) + "<br/>" +
+            escapeHtml(p.address || "") +
+          "</div>"
+        );
+        marker.addTo(group);
+      });
+      applyDomainVisibility(activeDomain);
+    }
+
+    // 검색 패널 안의 맛집/회사 토글: 아래 카테고리 아이콘 세트 + 지도 위 마커를 함께 바꾼다.
     const domainButtons = document.querySelectorAll(".domain-toggle button");
     const categoryGroups = document.querySelectorAll(".sidebar__categories");
+    let activeDomain = document.querySelector(".domain-toggle button.active").getAttribute("data-domain");
 
     domainButtons.forEach(function (btn) {
       btn.addEventListener("click", function () {
@@ -228,11 +320,34 @@
         btn.classList.add("active");
 
         const domain = btn.getAttribute("data-domain");
+        activeDomain = domain;
         categoryGroups.forEach(function (group) {
           group.hidden = group.getAttribute("data-domain") !== domain;
         });
+        applyDomainVisibility(domain);
       });
     });
+
+    // 카테고리 아이콘 버튼: 클릭하면 해당 카테고리 마커만 켜고 끈다.
+    categoryGroups.forEach(function (panel) {
+      const domain = panel.getAttribute("data-domain");
+      panel.querySelectorAll("button").forEach(function (btn) {
+        const label = btn.querySelector("span:last-child").textContent.trim();
+        const category = companyLabelToCategory[label] || label;
+        btn.addEventListener("click", function () {
+          btn.classList.toggle("is-off");
+          const g = groups[domain] && groups[domain][category];
+          if (!g) return;
+          if (btn.classList.contains("is-off")) {
+            map.removeLayer(g);
+          } else if (domain === activeDomain) {
+            map.addLayer(g);
+          }
+        });
+      });
+    });
+
+    loadPlaces();
 
     // 사이드바 접기/펼치기 토글: 접으면 왼쪽으로 숨으면서 아이콘만 남은 좁은 형태가 된다.
     const sidebar = document.getElementById("sidebar");

@@ -4,7 +4,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 NOTION_TOKEN = os.environ.get("NOTION_TOKEN")
-NOTION_DB_ID = os.environ.get("NOTION_COMPANY_DB_ID")
+NOTION_HOT_DB_ID = os.environ.get("NOTION_HOT_DB_ID")
+NOTION_COMPANY_DB_ID = os.environ.get("NOTION_COMPANY_DB_ID")
 KAKAO_API_KEY = os.environ.get("KAKAO_API_KEY")
 
 from flask import (
@@ -30,16 +31,35 @@ MAP_LON = 127.046110
 MAP_ZOOM = 13
 
 CATEGORY_VISIBLE = {
-    "볼 거리": True,
-    "알아갈 거리": True,
-    "마실 거리": True,
-    "먹을 거리": True,
-    "즐길 거리": True,
-    "쉴 거리": True,
-    "숙소": True,
-    "교통": True,
-    "기타": True,
+    "hotspot": {
+        "볼 거리": True,
+        "알아갈 거리": True,
+        "마실 거리": True,
+        "먹을 거리": True,
+        "즐길 거리": True,
+        "쉴 거리": True,
+        "숙소": True,
+        "교통": True,
+        "기타": True,
+    },
+    "company": {
+        "펌웨어": True,
+        "회로설계": True,
+        "PCB 아트웍": True,
+        "PCB 제작": True,
+        "SMT / 조립 / 하네스": True,
+        "부품 유통": True,
+        "기구설계 / CNC": True,
+        "기구 / 케이스": True,
+        "계측 / 시험 / 인증": True,
+        "기타": True,
+    },
 }
+
+DOMAINS = [
+    {"key": "hotspot", "db_id": NOTION_HOT_DB_ID},
+    {"key": "company", "db_id": NOTION_COMPANY_DB_ID},
+]
 
 NOTION_HEADERS = {
     "Authorization": f"Bearer {NOTION_TOKEN}",
@@ -145,44 +165,49 @@ def company():
 
 @app.route("/api/places")
 def api_places():
-    try:
-        pages = fetch_all_pages(NOTION_DB_ID)
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
     places = []
-    for page in pages:
-        props = page.get("properties") or {}
-        name = plain_title(props.get("상호"))
-        address = plain_text(props.get("주소"))
-        if not name or not address:
+    for domain in DOMAINS:
+        db_id = domain["db_id"]
+        if not db_id:
             continue
+        try:
+            pages = fetch_all_pages(db_id)
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
 
-        category = select_name(props.get("카테고리"), "기타")
+        for page in pages:
+            props = page.get("properties") or {}
+            name = plain_title(props.get("상호"))
+            address = plain_text(props.get("주소"))
+            if not name or not address:
+                continue
 
-        # 1. 노션 DB에 이미 위도, 경도가 기록되어 있는지 확인
-        lat = number_or_none(props.get("위도"))
-        lon = number_or_none(props.get("경도"))
+            category = select_name(props.get("카테고리"), "기타")
 
-        # 2. 위도나 경도가 없다면 카카오 지오코딩 실행 후 노션에 저장
-        if lat is None or lon is None:
-            lat, lon = get_kakao_coords(address)
-            if lat is not None and lon is not None:
-                page_id = page.get("id")
-                update_notion_lat_lon(page_id, lat, lon)
+            # 1. 노션 DB에 이미 위도, 경도가 기록되어 있는지 확인
+            lat = number_or_none(props.get("위도"))
+            lon = number_or_none(props.get("경도"))
 
-        if lat is None or lon is None:
-            print(f"좌표 실패: {name} / {address}")
-            continue
+            # 2. 위도나 경도가 없다면 카카오 지오코딩 실행 후 노션에 저장
+            if lat is None or lon is None:
+                lat, lon = get_kakao_coords(address)
+                if lat is not None and lon is not None:
+                    page_id = page.get("id")
+                    update_notion_lat_lon(page_id, lat, lon)
 
-        places.append({
-            "name": name,
-            "address": address,
-            "category": category,
-            "lat": lat,
-            "lon": lon,
-            "url": page.get("url", "#"),
-        })
+            if lat is None or lon is None:
+                print(f"좌표 실패: {name} / {address}")
+                continue
+
+            places.append({
+                "name": name,
+                "address": address,
+                "category": category,
+                "domain": domain["key"],
+                "lat": lat,
+                "lon": lon,
+                "url": page.get("url", "#"),
+            })
 
     return jsonify({
         "map": {

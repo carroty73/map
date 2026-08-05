@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>유진 엔지니어링 - 회사 소개</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" as="style" crossorigin
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="company_detail.css">
+</head>
+<body>
+  <div class="top-bar">
+    <a href="../../company/">&larr; 지도로 돌아가기</a>
+  </div>
+
+  <div class="page">
+    <div class="hero">
+      <div class="hero__logo" style="background:#3d5a80;">유진</div>
+      <div class="hero__title">
+        <h1>유진 엔지니어링</h1>
+        <span class="badge">제조 · 기계설비</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>소개</h2>
+      <p class="desc">
+        유진 엔지니어링은 산업 설비 제작과 정밀 부품 가공을 전문으로 하는 지역 제조업체입니다.
+        1998년 설립 이후 반도체·자동차 부품 협력사로 다수의 프로젝트를 수행해왔으며,
+        자체 설계·가공·조립 라인을 갖추고 있습니다.
+      </p>
+    </div>
+
+    <div class="card">
+      <h2>연락처</h2>
+      <ul class="contact-list">
+        <li><span class="icon">📞</span> <a href="tel:031-123-4567">031-123-4567</a></li>
+        <li><span class="icon">✉️</span> <a href="mailto:contact@yujin-eng.co.kr">contact@yujin-eng.co.kr</a></li>
+        <li><span class="icon">🌐</span> <a href="#" target="_blank" rel="noopener">www.yujin-eng.co.kr</a></li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>위치</h2>
+      <div id="map"></div>
+      <p class="address">경기도 의정부시 산업로 45 (가상 주소 · 샘플용)</p>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    const map = L.map('map', { zoomControl: false, attributionControl: false })
+      .setView([37.7386, 127.0518], 16);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+    L.marker([37.7386, 127.0518]).addTo(map);
+  </script>
+</body>
+</html>
