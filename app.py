@@ -28,10 +28,24 @@ from urllib.parse import unquote
 app = Flask(__name__)
 
 VIEW_COUNT_FILE = "view_count.json"
+MAP_CONFIG_FILE = "map_config.json"
 
 MAP_LAT = 37.738060
 MAP_LON = 127.046110
 MAP_ZOOM = 13
+
+
+def load_map_config():
+    config = {"lat": MAP_LAT, "lon": MAP_LON, "zoom": MAP_ZOOM}
+    if not os.path.exists(MAP_CONFIG_FILE):
+        return config
+    try:
+        with open(MAP_CONFIG_FILE, "r", encoding="utf-8") as f:
+            saved = json.load(f)
+        config.update({k: saved[k] for k in ("lat", "lon", "zoom") if k in saved})
+    except Exception:
+        pass
+    return config
 
 CATEGORY_VISIBLE = {
     "hotspot": {
@@ -212,11 +226,7 @@ def api_places():
             })
 
     return jsonify({
-        "map": {
-            "lat": MAP_LAT,
-            "lon": MAP_LON,
-            "zoom": MAP_ZOOM,
-        },
+        "map": load_map_config(),
         "categoryVisible": CATEGORY_VISIBLE,
         "places": places,
         "count": len(places),
