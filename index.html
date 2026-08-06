@@ -419,6 +419,9 @@
         console.error("장소 데이터를 불러오지 못했습니다.", err);
         return;
       }
+      if (data.map) {
+        map.setView([data.map.lat, data.map.lon], data.map.zoom);
+      }
       (data.places || []).forEach(function (p) { addPlaceMarker(p); });
       applyDomainVisibility(activeDomain);
     }
