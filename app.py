@@ -188,6 +188,11 @@ def map_page():
     return send_file("index.html")
 
 
+@app.route("/api/map-config")
+def api_map_config():
+    return jsonify(load_map_config())
+
+
 @app.route("/api/places")
 def api_places():
     places = []
