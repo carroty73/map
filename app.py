@@ -34,6 +34,15 @@ MAP_LAT = 37.738060
 MAP_LON = 127.046110
 MAP_ZOOM = 13
 
+NOTION_SITE_DOMAIN = "tulip-taker-d50.notion.site"
+
+
+def notion_public_url(page):
+    page_id = (page.get("id") or "").replace("-", "")
+    if not page_id:
+        return page.get("url", "#")
+    return f"https://{NOTION_SITE_DOMAIN}/{page_id}"
+
 
 def load_map_config():
     config = {"lat": MAP_LAT, "lon": MAP_LON, "zoom": MAP_ZOOM}
@@ -222,7 +231,7 @@ def api_places():
                 "domain": domain["key"],
                 "lat": lat,
                 "lon": lon,
-                "url": page.get("url", "#"),
+                "url": notion_public_url(page),
             })
 
     return jsonify({
@@ -297,7 +306,7 @@ def api_register():
             "domain": domain,
             "lat": lat,
             "lon": lon,
-            "url": page.get("url", "#"),
+            "url": notion_public_url(page),
         }
     })
 
