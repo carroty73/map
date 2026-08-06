@@ -28,7 +28,7 @@
         <button class="active" type="button" data-panel="panel-search">검색</button>
         <button type="button" data-panel="panel-favorite">즐겨찾기</button>
         <button type="button" data-panel="panel-register">등록</button>
-        <button type="button" data-panel="panel-guide">내 정보</button>
+        <!-- <button type="button" data-panel="panel-guide">내 정보</button> -->
       </div>
 
       <!-- 탭 클릭하면 이 안의 패널이 (애니메이션 없이) 바로 바뀐다 -->
@@ -105,6 +105,11 @@
             </div>
 
             <div class="form-field">
+              <label for="reg-id">등록 ID</label>
+              <input id="reg-id" type="text" placeholder="예) oyee">
+            </div>
+
+            <div class="form-field">
               <label for="reg-name">상호</label>
               <input id="reg-name" type="text" placeholder="예) 한샘 아트웍">
             </div>
@@ -137,6 +142,7 @@
           </form>
         </div>
 
+        <!--
         <div id="panel-guide" class="sidebar__panel">
           <div class="profile">
             <div class="profile__avatar">🥕</div>
@@ -150,6 +156,7 @@
             <li>가입일 2026-01-01</li>
           </ul>
         </div>
+        -->
       </div>
 
       <!-- 사이드바 전체를 접었다 펼치는 토글 버튼 (PC: 좌우) -->
@@ -643,6 +650,7 @@
 
     registerForm.addEventListener("submit", function (e) {
       e.preventDefault();
+      const regId = document.getElementById("reg-id").value.trim();
       const name = document.getElementById("reg-name").value.trim();
       const address = document.getElementById("reg-address").value.trim();
       const category = registerCategorySelect.value;
@@ -661,7 +669,7 @@
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          domain: registerDomain, name: name, address: address,
+          domain: registerDomain, regId: regId, name: name, address: address,
           category: category, phone: phone, memo: memo,
         }),
       })
