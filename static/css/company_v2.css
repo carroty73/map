@@ -321,6 +321,7 @@ html, body {
 
 .sidebar__panel {
   display: none;
+  padding-top: 20px;
 }
 
 .sidebar__panel.active {
@@ -447,7 +448,13 @@ html, body {
 
 /* 등록 패널 안의 폼 (원래 input.html에 있던 것을 그대로 가져옴) */
 .register-form {
-  padding: 20px 16px 16px;
+  padding: 0 16px 16px;
+}
+
+.register-form .domain-toggle {
+  margin-left: 0;
+  margin-right: 0;
+  margin-bottom: 16px;
 }
 
 .register-form .form-field {

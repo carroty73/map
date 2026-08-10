@@ -250,7 +250,7 @@ def api_places():
 DB_ID_BY_DOMAIN = {d["key"]: d["db_id"] for d in DOMAINS}
 
 
-def create_notion_place(db_id, name, address, category, lat, lon, phone, memo, reg_id):
+def create_notion_place(db_id, name, owner, address, category, lat, lon, phone, memo, reg_id):
     url = "https://" + "api.notion.com/v1/pages"
     properties = {
         "상호": {"title": [{"text": {"content": name}}]},
@@ -262,10 +262,12 @@ def create_notion_place(db_id, name, address, category, lat, lon, phone, memo, r
     }
     if reg_id:
         properties["등록ID"] = {"rich_text": [{"text": {"content": reg_id}}]}
+    if owner:
+        properties["대표자명"] = {"rich_text": [{"text": {"content": owner}}]}
     if phone:
         properties["전화번호"] = {"phone_number": phone}
     if memo:
-        properties["메모"] = {"rich_text": [{"text": {"content": memo}}]}
+        properties["간략소개"] = {"rich_text": [{"text": {"content": memo}}]}
 
     payload = {"parent": {"database_id": db_id}, "properties": properties}
     res = requests.post(url, headers=NOTION_HEADERS, json=payload, timeout=15)
@@ -280,6 +282,7 @@ def api_register():
     domain = data.get("domain")
     reg_id = (data.get("regId") or "").strip()
     name = (data.get("name") or "").strip()
+    owner = (data.get("owner") or "").strip()
     address = (data.get("address") or "").strip()
     category = (data.get("category") or "기타").strip()
     phone = (data.get("phone") or "").strip()
@@ -298,7 +301,7 @@ def api_register():
 
     try:
         page = create_notion_place(
-            DB_ID_BY_DOMAIN[domain], name, address, category, lat, lon, phone, memo, reg_id
+            DB_ID_BY_DOMAIN[domain], name, owner, address, category, lat, lon, phone, memo, reg_id,
         )
     except Exception as e:
         return jsonify({"error": str(e)}), 500

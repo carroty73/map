@@ -49,19 +49,19 @@ def fetch_all_pages(db_id):
 # 타입별로 값을 꺼내는 방법이 다르다.
 
 def plain_title(prop):
-    """제목(title) 타입 속성에서 순수 텍스트만 꺼낸다. (예: 상호)"""
+    """제목(title) 타입 속성에서 순수 텍스트만 꺼낸다. 예시) 상호"""
     arr = (prop or {}).get("title") or []
     return arr[0]["plain_text"] if arr else ""
 
 
 def plain_text(prop):
-    """텍스트(rich_text) 타입 속성에서 순수 텍스트만 꺼낸다. (예: 주소)"""
+    """텍스트(rich_text) 타입 속성에서 순수 텍스트만 꺼낸다. 예시) 주소"""
     arr = (prop or {}).get("rich_text") or []
     return arr[0]["plain_text"] if arr else ""
 
 
 def select_name(prop, default="기타"):
-    """선택(select) 타입 속성에서 선택된 값을 꺼낸다. 없으면 default. (예: 카테고리)"""
+    """선택(select) 타입 속성에서 선택된 값을 꺼낸다. 없으면 default. 예시) 카테고리"""
     sel = (prop or {}).get("select")
     if not sel:
         return default
@@ -69,7 +69,7 @@ def select_name(prop, default="기타"):
 
 
 def number_or_none(prop):
-    """숫자(number) 타입 속성값을 꺼낸다. 값이 없으면 None. (예: 위도/경도)"""
+    """숫자(number) 타입 속성값을 꺼낸다. 값이 없으면 None. 예시) 위도/경도"""
     if not prop:
         return None
     return prop.get("number")

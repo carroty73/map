@@ -21,7 +21,7 @@
       </div>
 
       <div class="sidebar__search">
-        <input type="search" id="search-input" placeholder="예) 한샘 아트웍" autocomplete="off">
+        <input type="search" id="search-input" placeholder="예시) 한샘 아트웍" autocomplete="off">
       </div>
 
       <div class="sidebar__tabs">
@@ -106,17 +106,22 @@
 
             <div class="form-field">
               <label for="reg-id">등록 ID</label>
-              <input id="reg-id" type="text" placeholder="예) oyee">
+              <input id="reg-id" type="text" placeholder="예시) oyee">
             </div>
 
             <div class="form-field">
               <label for="reg-name">상호</label>
-              <input id="reg-name" type="text" placeholder="예) 한샘 아트웍">
+              <input id="reg-name" type="text" placeholder="예시) 한샘 아트웍">
+            </div>
+
+            <div class="form-field">
+              <label for="reg-owner">대표자명</label>
+              <input id="reg-owner" type="text" placeholder="예시) 홍길동">
             </div>
 
             <div class="form-field">
               <label for="reg-address">주소</label>
-              <input id="reg-address" type="text" placeholder="예: 경기도 의정부시 평화로 522">
+              <input id="reg-address" type="text" placeholder="예시) 경기도 의정부시 평화로 522">
             </div>
 
             <div class="form-row">
@@ -127,13 +132,13 @@
 
               <div class="form-field">
                 <label for="reg-contact">연락처</label>
-                <input id="reg-contact" type="tel" placeholder="예: 031-000-0000">
+                <input id="reg-contact" type="tel" placeholder="예시) 031-000-0000">
               </div>
             </div>
 
             <div class="form-field">
-              <label for="reg-memo">메모</label>
-              <textarea id="reg-memo" placeholder="참고할 내용을 적어주세요"></textarea>
+              <label for="reg-memo">간략소개</label>
+              <textarea id="reg-memo" placeholder="소개할 내용을 간략히 적어주세요"></textarea>
             </div>
 
             <div id="register-msg" class="register-msg"></div>
@@ -670,6 +675,7 @@
       e.preventDefault();
       const regId = document.getElementById("reg-id").value.trim();
       const name = document.getElementById("reg-name").value.trim();
+      const owner = document.getElementById("reg-owner").value.trim();
       const address = document.getElementById("reg-address").value.trim();
       const category = registerCategorySelect.value;
       const phone = document.getElementById("reg-contact").value.trim();
@@ -687,7 +693,7 @@
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          domain: registerDomain, regId: regId, name: name, address: address,
+          domain: registerDomain, regId: regId, name: name, owner: owner, address: address,
           category: category, phone: phone, memo: memo,
         }),
       })
@@ -730,6 +736,7 @@
     sidebarToggle.addEventListener("click", function () {
       const collapsed = sidebar.classList.toggle("sidebar--collapsed");
       sidebarToggle.textContent = collapsed ? "▶" : "◀";
+      setTimeout(function () { if (map) map.invalidateSize(); }, 220);
     });
 
     // 모바일 전용 토글: 상단 바 아래 내용(패널)만 접었다 펼친다.
@@ -738,6 +745,7 @@
     mobileToggle.addEventListener("click", function () {
       const collapsed = sidebar.classList.toggle("sidebar--mobile-collapsed");
       mobileToggle.textContent = collapsed ? "▼" : "▲";
+      setTimeout(function () { if (map) map.invalidateSize(); }, 0);
     });
   </script>
 </body>

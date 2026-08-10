@@ -77,7 +77,7 @@ def number_or_none(prop):
 
 
 def unique_id_str(prop):
-    """고유번호(unique_id) 타입 속성을 "접두어+번호" 문자열로 만든다. (예: UID-1000)"""
+    """고유번호(unique_id) 타입 속성을 "접두어+번호" 문자열로 만든다. 예시) UID-1000"""
     uid = (prop or {}).get("unique_id")
     if not uid:
         return ""
