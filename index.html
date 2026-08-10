@@ -13,7 +13,7 @@
     <!-- 좌측 사이드바: 지금은 모양만 (지도/검색 로직 없음), 탭 전환 + 접기/펼치기만 동작 -->
     <div class="sidebar" id="sidebar">
       <div class="sidebar__header">
-        <span class="sidebar__logo">carrotymap</span>
+        <span class="sidebar__logo" id="sidebar-logo" role="button" tabindex="0">carrotymap</span>
         <div class="view-count">
           <span>Today <b id="view-count-today">-</b></span>
           <span>Total <b id="view-count-total">-</b></span>
@@ -175,6 +175,8 @@
     <div class="map-area">
       <div id="map"></div>
 
+      <button type="button" id="locate-btn" class="map-area__locate" title="내 위치">⊙</button>
+
       <div class="map-area__zoom">
         <button type="button">+</button>
         <button type="button">-</button>
@@ -213,7 +215,7 @@
 
       map = L.map("map", { zoomControl: false, attributionControl: false })
         .setView([mapConfig.lat, mapConfig.lon], mapConfig.zoom);
-      baseMaps["밝은 지도"].addTo(map);
+      baseMaps["기본 지도"].addTo(map);
       // 배경/경계 토글을 모아 보여줄 레이어 컨트롤 (버튼 하나, 클릭하면 펼쳐짐).
       layerControl = L.control.layers(baseMaps, {}, { collapsed: true, position: "topright" }).addTo(map);
       // 기본 위치(우하단)가 우리 커스텀 확대/축소 버튼과 겹쳐서 왼쪽 아래로 옮긴다.
@@ -224,6 +226,72 @@
       document.querySelectorAll(".map-area__zoom button")[1]
         .addEventListener("click", function () { map.zoomOut(); });
 
+      const locateBtn = document.getElementById("locate-btn");
+      let myLocationMarker = null;
+      let myLocationAccuracyCircle = null;
+      let locateWatchId = null;
+
+      function updateLocationMarker(pos, isFinal) {
+        const lat = pos.coords.latitude, lon = pos.coords.longitude, accuracy = pos.coords.accuracy;
+        if (myLocationMarker) map.removeLayer(myLocationMarker);
+        if (myLocationAccuracyCircle) map.removeLayer(myLocationAccuracyCircle);
+
+        myLocationAccuracyCircle = L.circle([lat, lon], {
+          radius: accuracy, color: "#1a73e8", weight: 1, fillColor: "#4285f4", fillOpacity: 0.12,
+        }).addTo(map);
+        myLocationMarker = L.circleMarker([lat, lon], {
+          radius: 8, color: "#1a73e8", weight: 2, fillColor: "#4285f4", fillOpacity: 0.9,
+        }).addTo(map);
+
+        const accuracyText = "오차 약 " + Math.round(accuracy) + "m";
+        myLocationMarker.bindPopup(
+          "현재 위치 (" + accuracyText + ")" +
+          (isFinal && accuracy > 100 ? "<br>GPS가 없는 기기(PC 등)는 정확도가 낮을 수 있어요." : "")
+        );
+        if (isFinal) myLocationMarker.openPopup();
+        return accuracy;
+      }
+
+      locateBtn.addEventListener("click", function () {
+        if (!navigator.geolocation) {
+          alert("이 브라우저는 위치 정보를 지원하지 않습니다.");
+          return;
+        }
+        if (locateWatchId !== null) navigator.geolocation.clearWatch(locateWatchId);
+
+        locateBtn.disabled = true;
+        let bestAccuracy = Infinity;
+        let bestPos = null;
+        let gotFirstFix = false;
+        const REFINE_DURATION_MS = 8000;
+
+        locateWatchId = navigator.geolocation.watchPosition(
+          function (pos) {
+            if (!gotFirstFix) {
+              gotFirstFix = true;
+              map.flyTo([pos.coords.latitude, pos.coords.longitude], 17, { duration: 0.85 });
+            }
+            if (pos.coords.accuracy <= bestAccuracy) {
+              bestAccuracy = pos.coords.accuracy;
+              bestPos = pos;
+              updateLocationMarker(pos, false);
+            }
+          },
+          function (err) {
+            locateBtn.disabled = false;
+            if (locateWatchId !== null) { navigator.geolocation.clearWatch(locateWatchId); locateWatchId = null; }
+            alert("위치 정보를 가져오지 못했습니다: " + err.message);
+          },
+          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        );
+
+        setTimeout(function () {
+          locateBtn.disabled = false;
+          if (locateWatchId !== null) { navigator.geolocation.clearWatch(locateWatchId); locateWatchId = null; }
+          if (bestPos) updateLocationMarker(bestPos, true);
+        }, REFINE_DURATION_MS);
+      });
+
       setupBoundaries();
       loadPlaces();
     }
@@ -232,16 +300,26 @@
     const tabButtons = document.querySelectorAll(".sidebar__tabs button");
     const panels = document.querySelectorAll(".sidebar__panel");
 
+    function switchPanel(targetId) {
+      tabButtons.forEach(function (b) {
+        b.classList.toggle("active", b.getAttribute("data-panel") === targetId);
+      });
+      panels.forEach(function (panel) {
+        panel.classList.toggle("active", panel.id === targetId);
+      });
+    }
+
     tabButtons.forEach(function (btn) {
       btn.addEventListener("click", function () {
-        tabButtons.forEach(function (b) { b.classList.remove("active"); });
-        btn.classList.add("active");
-
-        const targetId = btn.getAttribute("data-panel");
-        panels.forEach(function (panel) {
-          panel.classList.toggle("active", panel.id === targetId);
-        });
+        switchPanel(btn.getAttribute("data-panel"));
       });
+    });
+
+    // 로고를 누르면 검색 탭으로 이동한다.
+    const sidebarLogo = document.getElementById("sidebar-logo");
+    sidebarLogo.addEventListener("click", function () { switchPanel("panel-search"); });
+    sidebarLogo.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); switchPanel("panel-search"); }
     });
 
     // ===== 마커 데이터 연동 (회사 DB / 핫플 DB) =====
@@ -528,9 +606,44 @@
       }, 900);
     }
 
+    let addressPinMarker = null;
+
+    function clearAddressPin() {
+      if (addressPinMarker) { map.removeLayer(addressPinMarker); addressPinMarker = null; }
+    }
+
     function clearSearchResults() {
       placeListEl.innerHTML = placeListDefaultHtml;
       placeListTitleEl.textContent = placeListDefaultTitle;
+      clearAddressPin();
+    }
+
+    function showSearchMessage(text) {
+      placeListTitleEl.textContent = "검색 결과";
+      placeListEl.innerHTML = "";
+      const li = document.createElement("li");
+      li.className = "sidebar__list-empty";
+      li.textContent = text;
+      placeListEl.appendChild(li);
+    }
+
+    async function searchByAddress(query) {
+      showSearchMessage("주소를 찾는 중...");
+      let data;
+      try {
+        const res = await fetch("/api/geocode?address=" + encodeURIComponent(query));
+        data = await res.json();
+        if (!res.ok) throw new Error(data.error || "주소를 찾지 못했습니다.");
+      } catch (err) {
+        showSearchMessage(err.message || "주소를 찾지 못했습니다.");
+        return;
+      }
+
+      clearAddressPin();
+      addressPinMarker = L.marker([data.lat, data.lon]).addTo(map);
+      addressPinMarker.bindPopup(escapeHtml(query)).openPopup();
+      map.flyTo([data.lat, data.lon], 17, { duration: 0.85 });
+      showSearchMessage(query + " 위치를 찾았습니다.");
     }
 
     function renderSearchResults(items) {
@@ -565,6 +678,7 @@
 
     searchInput.addEventListener("input", function () {
       const q = searchInput.value.trim();
+      clearAddressPin();
       if (!q) { clearSearchResults(); return; }
       renderSearchResults(findPlaces(q, activeDomain));
     });
@@ -572,8 +686,14 @@
     searchInput.addEventListener("keydown", function (e) {
       if (e.key === "Enter") {
         e.preventDefault();
-        const found = findPlaces(searchInput.value.trim(), activeDomain);
-        if (found.length) goToPlace(found[0]);
+        const q = searchInput.value.trim();
+        if (!q) return;
+        const found = findPlaces(q, activeDomain);
+        if (found.length) {
+          goToPlace(found[0]);
+        } else {
+          searchByAddress(q);
+        }
       } else if (e.key === "Escape") {
         clearSearchResults();
       }

@@ -193,6 +193,19 @@ def api_map_config():
     return jsonify(load_map_config())
 
 
+@app.route("/api/geocode")
+def api_geocode():
+    address = (request.args.get("address") or "").strip()
+    if not address:
+        return jsonify({"error": "주소를 입력해주세요."}), 400
+
+    lat, lon = get_kakao_coords(address)
+    if lat is None or lon is None:
+        return jsonify({"error": "주소로 좌표를 찾지 못했습니다."}), 404
+
+    return jsonify({"lat": lat, "lon": lon})
+
+
 @app.route("/api/places")
 def api_places():
     places = []
