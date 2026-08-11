@@ -101,7 +101,7 @@ html, body {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 8px;
-  padding: 16px;
+  padding: 16px 16px 28px;
 }
 
 .sidebar__categories[hidden] {
@@ -651,7 +651,7 @@ html, body {
     width: 100%;
     min-width: 0;
     height: auto;
-    max-height: 55vh;
+    max-height: 60vh;
     border-right: none;
     border-bottom: 1px solid #e5e5e5;
   }

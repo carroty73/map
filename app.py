@@ -188,6 +188,16 @@ def map_page():
     return send_file("index.html")
 
 
+@app.route("/robots.txt")
+def robots_txt():
+    return send_file("robots.txt")
+
+
+@app.route("/sitemap.xml")
+def sitemap_xml():
+    return send_file("sitemap.xml")
+
+
 @app.route("/api/map-config")
 def api_map_config():
     return jsonify(load_map_config())

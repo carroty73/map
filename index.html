@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>carrotymap</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <link rel="stylesheet" href="/static/css/company_v2.css">
+  <link rel="stylesheet" href="/static/css/company_v2.css?v=4">
 </head>
 <body>
   <div class="layout">
@@ -26,8 +26,8 @@
 
       <div class="sidebar__tabs">
         <button class="active" type="button" data-panel="panel-search">검색</button>
-        <button type="button" data-panel="panel-favorite">즐겨찾기</button>
-        <button type="button" data-panel="panel-register">등록</button>
+        <button type="button" data-panel="panel-favorite" id="tab-favorite">즐겨찾기</button>
+        <button type="button" data-panel="panel-register" id="tab-register">등록</button>
         <!-- <button type="button" data-panel="panel-guide">내 정보</button> -->
       </div>
 
@@ -423,7 +423,13 @@
         '" data-fav-id="' + escapeHtml(id) + '" title="즐겨찾기">' + (fav ? "★" : "☆") + "</button>";
     }
 
+    function updateTabCount(id, label, count) {
+      const btn = document.getElementById(id);
+      if (btn) btn.textContent = label + " (" + count + ")";
+    }
+
     function renderFavoritesPanel() {
+      updateTabCount("tab-favorite", "즐겨찾기", favorites.length);
       const el = document.getElementById("favorite-list");
       if (!el) return;
       el.innerHTML = "";
@@ -522,6 +528,7 @@
       }
       (data.places || []).forEach(function (p) { addPlaceMarker(p); });
       applyDomainVisibility(activeDomain);
+      updateRegisterTabCount();
     }
 
     // 검색 패널 안의 맛집/회사 토글: 아래 카테고리 아이콘 세트 + 지도 위 마커를 함께 바꾼다.
@@ -761,6 +768,11 @@
     const registerSubmitBtn = document.getElementById("register-submit");
     let registerDomain = document.querySelector("#register-domain-toggle button.active").getAttribute("data-domain");
 
+    function updateRegisterTabCount() {
+      const count = placeIndex.filter(function (p) { return p.domain === registerDomain; }).length;
+      updateTabCount("tab-register", "등록", count);
+    }
+
     function registerCategoriesFor(domain) {
       return domain === "company" ? Object.keys(companyIconEmoji) : Object.keys(hotspotIconFiles);
     }
@@ -783,6 +795,7 @@
         btn.classList.add("active");
         registerDomain = btn.getAttribute("data-domain");
         populateRegisterCategories(registerDomain);
+        updateRegisterTabCount();
       });
     });
 
