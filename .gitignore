@@ -1,5 +1,6 @@
 .env
 view_count.json
+app.log
 boundaries/
 __pycache__/
 *.pyc
