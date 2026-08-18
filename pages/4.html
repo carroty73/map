@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>신한 | Shinhan Sample - 신한자산운용 소개</title>
+<style>
+  :root{
+    --bg-page:#f4f6fa;
+    --navy:#123a68;
+    --navy-deep:#0b2646;
+    --sky:#3d8bff;
+    --text-dark:#1c2733;
+    --text-muted:#6b7685;
+    --card-bg:#ffffff;
+    --border:#e3e8f0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+    background:var(--bg-page);
+    color:var(--text-dark);
+    line-height:1.6;
+  }
+  a{text-decoration:none;color:inherit;}
+  img{max-width:100%;display:block;}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px;}
+
+  /* header */
+  header{
+    position:sticky;top:0;z-index:50;
+    background:var(--navy);color:#fff;
+  }
+  .nav{
+    max-width:1080px;margin:0 auto;padding:14px 20px;
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  .logo{display:flex;align-items:center;gap:8px;font-weight:800;font-size:1rem;}
+  .logo .mark{
+    width:30px;height:30px;border-radius:7px;
+    background:linear-gradient(135deg,var(--sky),var(--navy-deep));
+    display:flex;align-items:center;justify-content:center;
+    font-size:0.8rem;font-weight:900;color:#fff;
+  }
+  .logo .sub{display:block;font-size:0.6rem;font-weight:500;color:#a9c1e0;}
+  .menu-btn{
+    width:34px;height:34px;border:1px solid rgba(255,255,255,.35);border-radius:8px;
+    display:flex;align-items:center;justify-content:center;font-size:0.85rem;
+  }
+  .nav-links{display:none;align-items:center;gap:26px;font-size:0.88rem;color:#cfe0f7;}
+  .nav-links a:hover{color:#fff;}
+  .nav-cta{
+    display:none;background:var(--sky);color:#fff;padding:9px 18px;border-radius:8px;
+    font-size:0.85rem;font-weight:700;
+  }
+
+  /* quick nav strip (mobile) */
+  .subnav{
+    display:flex;background:var(--navy-deep);color:#cfe0f7;
+    font-size:0.78rem;
+  }
+  .subnav a{flex:1;text-align:center;padding:10px 4px;border-right:1px solid rgba(255,255,255,.08);}
+  .subnav a:last-child{border-right:none;}
+
+  /* hero */
+  .hero{
+    position:relative;overflow:hidden;
+    background:linear-gradient(160deg,var(--navy) 0%,var(--navy-deep) 100%);
+    color:#fff;padding:44px 22px 40px;text-align:center;
+  }
+  .hero-inner{max-width:1080px;margin:0 auto;}
+  .hero .eyebrow{
+    display:inline-block;font-size:0.68rem;font-weight:700;letter-spacing:1.2px;
+    color:#9fc4f5;border:1px solid rgba(159,196,245,.5);
+    padding:5px 12px;border-radius:999px;margin-bottom:16px;
+  }
+  .hero h1{font-size:1.3rem;font-weight:800;line-height:1.5;margin-bottom:10px;}
+  .hero p{font-size:0.82rem;color:#b9cbe6;margin-bottom:22px;max-width:520px;margin-left:auto;margin-right:auto;}
+  .hero-btns{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;}
+  .btn{
+    padding:10px 18px;border-radius:8px;font-weight:700;font-size:0.82rem;
+    display:inline-flex;align-items:center;gap:6px;
+  }
+  .btn-primary{background:var(--sky);color:#fff;}
+  .btn-outline{border:1px solid rgba(255,255,255,.4);color:#fff;}
+
+  /* sections */
+  section{padding:34px 20px;}
+  section.alt{background:#eef2f8;}
+  .section-tag{
+    font-size:0.68rem;font-weight:800;letter-spacing:1.2px;color:var(--sky);
+    margin-bottom:6px;
+  }
+  .section-title{font-size:1.08rem;font-weight:800;letter-spacing:-0.3px;margin-bottom:10px;}
+  .section-desc{color:var(--text-muted);font-size:0.85rem;margin-bottom:20px;}
+
+  /* greeting */
+  .greeting-card{
+    background:var(--card-bg);border:1px solid var(--border);border-radius:12px;
+    padding:20px;font-size:0.85rem;color:var(--text-dark);
+  }
+  .greeting-card b{color:var(--navy);}
+
+  /* quick menu grid */
+  .quick-grid{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:10px;
+  }
+  .quick-item{
+    background:var(--card-bg);border:1px solid var(--border);border-radius:12px;
+    padding:16px 6px;text-align:center;font-size:0.78rem;font-weight:700;
+  }
+  .quick-item .q-icon{font-size:1.3rem;margin-bottom:8px;}
+
+  /* news */
+  .news-list{border-top:1px solid var(--border);}
+  .news-item{
+    display:flex;flex-direction:column;gap:2px;padding:14px 0;
+    border-bottom:1px solid var(--border);
+  }
+  .news-item .n-tag{font-size:0.68rem;font-weight:800;color:var(--sky);flex-shrink:0;}
+  .news-item .n-text{font-size:0.85rem;color:var(--text-dark);}
+  .news-item .n-date{font-size:0.72rem;color:var(--text-muted);}
+
+  /* stat strip */
+  .stat-strip{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:20px;}
+  .stat-strip div{
+    background:var(--card-bg);border:1px solid var(--border);border-radius:12px;
+    padding:16px;text-align:center;
+  }
+  .stat-strip .num{font-size:1.05rem;font-weight:800;color:var(--navy);}
+  .stat-strip .label{font-size:0.72rem;color:var(--text-muted);margin-top:4px;}
+
+  /* contact */
+  .contact-card{
+    background:var(--card-bg);border:1px solid var(--border);border-radius:14px;
+    padding:22px;
+  }
+  .contact-card .tel-btn{
+    display:block;text-align:center;background:var(--sky);color:#fff;
+    padding:12px;border-radius:9px;font-weight:800;font-size:0.95rem;margin-bottom:18px;
+  }
+  .contact-info{font-size:0.82rem;color:var(--text-muted);}
+  .contact-info b{color:var(--text-dark);}
+  .contact-info .row{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;}
+  .contact-info .row .k{width:64px;color:var(--navy);font-weight:700;flex-shrink:0;}
+
+  footer{
+    text-align:center;padding:22px 20px;color:var(--text-muted);font-size:0.7rem;
+    border-top:1px solid var(--border);background:var(--bg-page);
+  }
+  footer .disclaimer{margin-top:6px;color:#9aa4b1;font-size:0.65rem;}
+
+  /* ===== desktop / tablet (>=768px) ===== */
+  @media(min-width:768px){
+    .subnav,.menu-btn{display:none;}
+    .nav-links{display:flex;}
+    .nav-cta{display:inline-flex;}
+
+    .hero{padding:90px 24px 100px;}
+    .hero .eyebrow{font-size:0.75rem;}
+    .hero h1{font-size:2.3rem;line-height:1.4;}
+    .hero p{font-size:1rem;}
+    .btn{padding:13px 26px;font-size:0.92rem;}
+
+    section{padding:70px 24px;}
+    .section-tag{font-size:0.75rem;}
+    .section-title{font-size:1.6rem;}
+    .section-desc{font-size:0.95rem;max-width:600px;}
+
+    .greeting-card{padding:28px 32px;font-size:0.95rem;}
+    .stat-strip{grid-template-columns:repeat(4,1fr);max-width:640px;}
+
+    .quick-grid{grid-template-columns:repeat(6,1fr);gap:16px;}
+    .quick-item{padding:22px 10px;font-size:0.85rem;}
+    .quick-item .q-icon{font-size:1.6rem;}
+
+    .news-item{flex-direction:row;align-items:center;gap:16px;padding:18px 0;}
+    .news-item .n-tag{
+      border:1px solid var(--sky);border-radius:4px;padding:3px 8px;
+    }
+    .news-item .n-text{flex:1;font-size:0.9rem;}
+    .news-item .n-date{font-size:0.82rem;}
+
+    .contact-card{
+      display:grid;grid-template-columns:280px 1fr;gap:32px;align-items:center;padding:36px;
+    }
+    .contact-card .tel-btn{margin-bottom:0;}
+    .contact-info .row{margin-bottom:10px;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <div class="logo">
+      <div class="mark">신</div>
+      <div>
+        신한
+        <span class="sub">Shinhan Sample Asset</span>
+      </div>
+    </div>
+    <nav class="nav-links">
+      <a href="#company">회사소개</a>
+      <a href="#location">오시는길</a>
+      <a href="#products">투자상품</a>
+    </nav>
+    <a href="#location" class="nav-cta">문의하기</a>
+    <div class="menu-btn">☰</div>
+  </div>
+  <nav class="subnav">
+    <a href="#company">회사소개</a>
+    <a href="#location">오시는길</a>
+    <a href="#products">투자상품</a>
+  </nav>
+</header>
+
+<section class="hero">
+  <div class="hero-inner">
+    <span class="eyebrow">SAMPLE FUND COMPANY</span>
+    <h1>미래를 키우는 힘,<br>신한과 함께 하겠습니다.</h1>
+    <p>신뢰를 바탕으로 한 자산운용, 고객과 함께 성장하는 투자 파트너입니다.</p>
+    <div class="hero-btns">
+      <a href="#location" class="btn btn-primary">문의하기</a>
+      <a href="#products" class="btn btn-outline">투자상품 보기</a>
+    </div>
+  </div>
+</section>
+
+<section id="company">
+  <div class="wrap">
+    <div class="section-tag">01. GREETING</div>
+    <h2 class="section-title">인사말</h2>
+    <div class="greeting-card">
+      안녕하십니까? 저희 <b>신한(샘플)</b> 홈페이지를 방문해주신 여러분 진심으로 환영합니다.
+      건전한 자산운용과 투명한 정보 공개를 원칙으로, 고객 여러분의 신뢰에 보답하겠습니다.
+    </div>
+    <div class="stat-strip">
+      <div><div class="num">2011년</div><div class="label">설립</div></div>
+      <div><div class="num">자산운용업</div><div class="label">펀드 / 투자일임</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="alt">
+  <div class="wrap">
+    <div class="section-tag">02. QUICK MENU</div>
+    <h2 class="section-title">빠른메뉴</h2>
+    <div class="quick-grid">
+      <div class="quick-item"><div class="q-icon">🏢</div>회사소개</div>
+      <div class="quick-item"><div class="q-icon">📈</div>투자상품</div>
+      <div class="quick-item"><div class="q-icon">🖼️</div>갤러리</div>
+      <div class="quick-item"><div class="q-icon">📍</div>오시는길</div>
+      <div class="quick-item"><div class="q-icon">📢</div>공지사항</div>
+      <div class="quick-item"><div class="q-icon">✉️</div>문의사항</div>
+    </div>
+  </div>
+</section>
+
+<section id="products">
+  <div class="wrap">
+    <div class="section-tag">03. LATEST NEWS</div>
+    <h2 class="section-title">최신뉴스</h2>
+    <div class="news-list">
+      <div class="news-item">
+        <span class="n-tag">공시</span>
+        <span class="n-text">제15기 1분기 펀드 운용보고서 공시</span>
+        <span class="n-date">2026.07.31</span>
+      </div>
+      <div class="news-item">
+        <span class="n-tag">공지</span>
+        <span class="n-text">'미래성장기업 펀드' 기준가 변동 안내</span>
+        <span class="n-date">2026.07.15</span>
+      </div>
+      <div class="news-item">
+        <span class="n-tag">공지</span>
+        <span class="n-text">홈페이지 리뉴얼 오픈 안내</span>
+        <span class="n-date">2026.06.02</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="location" class="alt">
+  <div class="wrap">
+    <div class="section-tag">04. CONTACT</div>
+    <h2 class="section-title">문의하기</h2>
+    <p class="section-desc">투자상품 상담이 필요하신가요? 아래 번호로 편하게 연락 주세요.</p>
+    <div class="contact-card">
+      <a href="#" class="tel-btn">📞 1588-0000 전화상담</a>
+      <div class="contact-info">
+        <div class="row"><span class="k">대표</span><b>김신한</b></div>
+        <div class="row"><span class="k">사업자</span>123-45-67890</div>
+        <div class="row"><span class="k">주소</span>서울특별시 중구 신한로 45, 3층</div>
+        <div class="row"><span class="k">전화</span>1588-0000 / 팩스 02-0000-0000</div>
+        <div class="row"><span class="k">이메일</span>info@shinhan-sample.co.kr</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  © 2026 신한(Shinhan Sample). All Rights Reserved.
+  <div class="disclaimer">본 페이지는 학습/디자인 참고용 가상 회사 소개 샘플이며, 실제 금융기관과 무관합니다.</div>
+</footer>
+
+</body>
+</html>

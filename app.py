@@ -188,6 +188,29 @@ def map_page():
     return send_file("index.html")
 
 
+PAGES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "pages")
+
+
+def _resolve_page_path(name: str):
+    name = unquote(name)
+    if "/" in name or "\\" in name or ".." in name:
+        return None
+    if not name.lower().endswith(".html"):
+        name += ".html"
+    path = os.path.join(PAGES_DIR, name)
+    if os.path.isfile(path):
+        return path
+    return None
+
+
+@app.route("/p/<path:name>")
+def company_page(name):
+    path = _resolve_page_path(name)
+    if not path:
+        abort(404)
+    return send_file(path)
+
+
 @app.route("/robots.txt")
 def robots_txt():
     return send_file("robots.txt")

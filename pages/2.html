@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>세영 | Seyoung - Industrial Conveyor Solutions</title>
+<style>
+  :root{
+    --bg-page:#f3f9ff;
+    --blue:#2f8dff;
+    --blue-deep:#0b57d9;
+    --blue-light:#0ea5e9;
+    --text-light:#10233d;
+    --text-muted:#5c7191;
+    --card-bg:#ffffff;
+    --border:#dbeafd;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+    background:var(--bg-page);
+    color:var(--text-light);
+    line-height:1.6;
+  }
+  a{text-decoration:none;color:inherit;}
+  img{max-width:100%;display:block;}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px;}
+
+  /* header */
+  header{
+    position:sticky;top:0;z-index:50;
+    background:rgba(255,255,255,0.85);
+    backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--border);
+  }
+  .nav{
+    max-width:1080px;margin:0 auto;padding:16px 24px;
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  .logo{
+    display:flex;align-items:center;gap:8px;
+    font-weight:800;font-size:1.05rem;letter-spacing:-0.5px;
+  }
+  .logo .mark{
+    width:32px;height:32px;border-radius:8px;
+    background:linear-gradient(135deg,var(--blue),var(--blue-deep));
+    display:flex;align-items:center;justify-content:center;
+    font-size:0.85rem;font-weight:900;color:#fff;
+  }
+  .logo .sub{font-size:0.65rem;color:var(--text-muted);font-weight:500;display:block;}
+  .nav-links{display:flex;align-items:center;gap:28px;}
+  .nav-links a{font-size:0.9rem;color:var(--text-muted);transition:color .15s;}
+  .nav-links a:hover{color:var(--blue-deep);}
+  .nav-cta{
+    background:var(--blue);color:#fff;padding:9px 18px;border-radius:8px;
+    font-size:0.85rem;font-weight:700;
+  }
+
+  /* hero */
+  .hero{
+    position:relative;overflow:hidden;
+    background:
+      repeating-linear-gradient(135deg,rgba(47,141,255,0.06) 0 2px,transparent 2px 34px),
+      radial-gradient(ellipse at 75% 20%,#dcf0ff 0%,var(--bg-page) 60%);
+    padding:100px 0 110px;
+    border-bottom:1px solid var(--border);
+  }
+  .hero-inner{position:relative;max-width:1080px;margin:0 auto;padding:0 24px;text-align:center;}
+  .eyebrow{
+    display:inline-block;font-size:0.75rem;font-weight:700;letter-spacing:1.5px;
+    color:var(--blue-light);border:1px solid var(--blue-deep);
+    padding:6px 14px;border-radius:999px;margin-bottom:24px;
+  }
+  .hero h1{
+    font-size:2.2rem;font-weight:800;letter-spacing:-1px;line-height:1.4;margin-bottom:12px;
+  }
+  .hero h1 .en{
+    display:block;font-size:1.15rem;font-weight:700;color:var(--blue-light);margin-bottom:10px;
+    letter-spacing:-0.3px;
+  }
+  .hero .slogan{
+    color:var(--text-muted);font-size:1rem;max-width:600px;margin:18px auto 34px;
+  }
+  .hero .slogan .en{display:block;font-size:0.85rem;color:#7a90ad;margin-top:6px;}
+  .hero-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
+  .btn{
+    padding:13px 26px;border-radius:9px;font-weight:700;font-size:0.92rem;
+    display:inline-flex;align-items:center;gap:6px;
+  }
+  .btn-primary{background:var(--blue);color:#fff;box-shadow:0 8px 24px -8px rgba(47,141,255,.55);}
+  .btn-outline{border:1px solid var(--border);color:var(--text-light);background:#fff;}
+
+  /* sections */
+  section{padding:80px 0;}
+  section.alt{background:#eaf4ff;}
+  .section-tag{
+    font-size:0.75rem;font-weight:800;letter-spacing:1.5px;color:var(--blue-light);
+    margin-bottom:10px;
+  }
+  .section-title{font-size:1.7rem;font-weight:800;letter-spacing:-0.5px;margin-bottom:12px;}
+  .section-desc{color:var(--text-muted);font-size:0.95rem;margin-bottom:40px;max-width:640px;}
+
+  /* business */
+  .biz-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+  .biz-card{
+    background:var(--card-bg);border:1px solid var(--border);border-radius:14px;
+    padding:28px 24px;
+  }
+  .biz-card .b-icon{
+    width:44px;height:44px;border-radius:10px;background:rgba(47,141,255,.12);
+    display:flex;align-items:center;justify-content:center;margin-bottom:16px;font-size:1.3rem;
+  }
+  .biz-card h4{font-size:1.05rem;font-weight:700;margin-bottom:10px;}
+  .biz-card p{font-size:0.86rem;color:var(--text-muted);}
+
+  /* products */
+  .product-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+  .product-card{
+    background:var(--card-bg);border:1px solid var(--border);border-radius:12px;
+    padding:22px 16px;text-align:center;
+  }
+  .product-card .p-icon{font-size:1.6rem;margin-bottom:10px;}
+  .product-card h5{font-size:0.9rem;font-weight:700;}
+
+  /* stats strip */
+  .stat-strip{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:48px;
+    border-top:1px solid var(--border);padding-top:36px;
+  }
+  .stat-strip div{text-align:center;}
+  .stat-strip .num{font-size:1.6rem;font-weight:800;color:var(--blue-light);}
+  .stat-strip .label{font-size:0.8rem;color:var(--text-muted);margin-top:4px;}
+
+  /* contact */
+  .contact-card{
+    background:var(--card-bg);border:1px solid var(--border);border-radius:16px;
+    padding:36px;display:grid;grid-template-columns:auto 1fr;gap:36px;align-items:center;
+  }
+  .contact-brand .mark{
+    width:56px;height:56px;border-radius:12px;
+    background:linear-gradient(135deg,var(--blue),var(--blue-deep));
+    display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;margin-bottom:10px;
+    font-size:1.4rem;
+  }
+  .contact-brand .name{font-weight:800;font-size:1.05rem;}
+  .contact-brand .name-sub{font-size:0.7rem;color:var(--text-muted);}
+  .contact-info{font-size:0.88rem;color:var(--text-muted);}
+  .contact-info b{color:var(--text-light);}
+  .contact-info .row{display:flex;gap:10px;margin-bottom:8px;flex-wrap:wrap;}
+  .contact-info .row .k{width:60px;color:var(--blue-light);font-weight:700;flex-shrink:0;}
+
+  footer{
+    text-align:center;padding:30px 24px;color:var(--text-muted);font-size:0.8rem;
+    border-top:1px solid var(--border);
+  }
+
+  @media(max-width:860px){
+    .nav-links{display:none;}
+    .hero h1{font-size:1.6rem;}
+    .biz-grid{grid-template-columns:1fr;}
+    .product-grid{grid-template-columns:repeat(2,1fr);}
+    .stat-strip{grid-template-columns:1fr;gap:24px;}
+    .contact-card{grid-template-columns:1fr;text-align:center;}
+    .contact-info .row{justify-content:center;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <div class="logo">
+      <div class="mark">S</div>
+      <div>
+        세영
+        <span class="sub">Seyoung Engineering</span>
+      </div>
+    </div>
+    <nav class="nav-links">
+      <a href="#about">회사소개</a>
+      <a href="#business">BUSINESS</a>
+      <a href="#products">제품</a>
+      <a href="#contact">연락처</a>
+    </nav>
+    <a href="#contact" class="nav-cta">견적 문의</a>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-inner">
+    <span class="eyebrow">INDUSTRIAL CONVEYOR SOLUTIONS</span>
+    <h1>
+      <span class="en">World's 1st Conveyor Company, Industrial Conveyors.</span>
+      세계 최고의 컨베어 기업, 세영입니다.
+    </h1>
+    <p class="slogan">
+      세영은 제조산업을 더욱 강하고 가치있게 만듭니다.
+      <span class="en">Makes manufacturing factory Stronger and more Valuable</span>
+    </p>
+    <div class="hero-btns">
+      <a href="#contact" class="btn btn-primary">견적 문의하기</a>
+      <a href="#business" class="btn btn-outline">사업분야 보기</a>
+    </div>
+  </div>
+</section>
+
+<section id="about">
+  <div class="wrap">
+    <div class="section-tag">01. COMPANY</div>
+    <h2 class="section-title">세영 소개</h2>
+    <p class="section-desc">
+      물류 자동화와 산업 기계 솔루션을 제공하는 컨베이어 전문 기업입니다.
+      다양한 Conveyor 구조 설계와 축적된 노하우로 제조 현장의 능률과 안전을 함께 높입니다.
+    </p>
+    <div class="stat-strip">
+      <div><div class="num">TIPPER</div><div class="label">SORTER · DIVERTER 등 컨베이어 시스템</div></div>
+      <div><div class="num">스마트 AI</div><div class="label">싱귤레이터(Singulator) 개발</div></div>
+      <div><div class="num">안전펜스</div><div class="label">산업용 안전 규정 준수 설치</div></div>
+    </div>
+  </div>
+</section>
+
+<section id="business" class="alt">
+  <div class="wrap">
+    <div class="section-tag">02. BUSINESS</div>
+    <h2 class="section-title">사업 분야</h2>
+    <p class="section-desc">물류 자동화부터 공장자동화, 산업용 안전펜스까지 토탈 솔루션을 제공합니다.</p>
+    <div class="biz-grid">
+      <div class="biz-card">
+        <div class="b-icon">📦</div>
+        <h4>물류 자동화</h4>
+        <p>여러 Conveyor 구조를 통해 설계되어, 다양한 분류 시스템을 구성하여 더 편리하게 더 신속하게, 일의 능률을 높여드립니다.</p>
+      </div>
+      <div class="biz-card">
+        <div class="b-icon">⚙️</div>
+        <h4>산업기계 / 공장자동화</h4>
+        <p>여러 Conveyor 구조를 통해 설계되어, 다양한 분류 시스템을 구성하여 더 편리하게 더 신속하게, 일의 능률을 높여드립니다.</p>
+      </div>
+      <div class="biz-card">
+        <div class="b-icon">🛡️</div>
+        <h4>산업용 안전펜스</h4>
+        <p>오랜 시간 축적된 노하우로 안전 규정에 맞는 산업용 안전 펜스를 설치해드립니다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="products">
+  <div class="wrap">
+    <div class="section-tag">03. PRODUCTS</div>
+    <h2 class="section-title">제품 라인업</h2>
+    <p class="section-desc">현장에 맞는 컨베이어 및 안전 설비를 제작·설치합니다.</p>
+    <div class="product-grid">
+      <div class="product-card"><div class="p-icon">🔀</div><h5>TIPPER</h5></div>
+      <div class="product-card"><div class="p-icon">🗂️</div><h5>SORTER</h5></div>
+      <div class="product-card"><div class="p-icon">↗️</div><h5>DIVERTER</h5></div>
+      <div class="product-card"><div class="p-icon">🎢</div><h5>Roller Conveyor</h5></div>
+      <div class="product-card"><div class="p-icon">➰</div><h5>Belt Conveyor</h5></div>
+      <div class="product-card"><div class="p-icon">🚧</div><h5>안전펜스</h5></div>
+      <div class="product-card"><div class="p-icon">🚪</div><h5>여닫이 도어</h5></div>
+      <div class="product-card"><div class="p-icon">🚪</div><h5>미닫이 도어</h5></div>
+    </div>
+  </div>
+</section>
+
+<section id="contact" class="alt">
+  <div class="wrap">
+    <div class="section-tag">04. CONTACT</div>
+    <h2 class="section-title">연락처</h2>
+    <p class="section-desc">컨베이어/자동화 설비가 필요하신가요? 언제든 편하게 연락 주세요.</p>
+    <div class="contact-card">
+      <div class="contact-brand">
+        <div class="mark">S</div>
+        <div class="name">세영</div>
+        <div class="name-sub">Seyoung Engineering</div>
+      </div>
+      <div class="contact-info">
+        <div class="row"><span class="k">전화</span><b>055-713-9612</b></div>
+        <div class="row"><span class="k">Email</span>smartseyoung@naver.com</div>
+        <div class="row"><span class="k">주소</span>경상남도 창원시 의창구 차룡로48번길 44, B108호 (팔용동, 스마트업타워)</div>
+        <div class="row"><span class="k">홈페이지</span>https://www.seyoung-eng.com/</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  © 2026 세영(Seyoung Engineering). All Rights Reserved.
+</footer>
+
+</body>
+</html>

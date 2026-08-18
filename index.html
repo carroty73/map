@@ -7,7 +7,7 @@
   <link rel="icon" href="/static/img/logo-og.png">
   <link rel="apple-touch-icon" href="/static/img/logo-og-touch.png">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <link rel="stylesheet" href="/static/css/company_v2.css?v=4">
+  <link rel="stylesheet" href="/static/css/company_v2.css?v=6">
 </head>
 <body>
   <div class="layout">
@@ -70,16 +70,11 @@
             <li class="sidebar__list-empty">검색어를 입력해 보세요.</li>
           </ul>
 
-          <!-- 1. 광고 (자리표시자) -->
-          <a class="ad-card" href="https://tulip-taker-d50.notion.site/3b2f99a4bb2380abbee9d297ee0393d6?source=copy_link" target="_blank" rel="noopener">
-            <span class="ad-card__tag">AD</span>
-            <div class="ad-card__text">
-              <div class="ad-card__title">당근이 파트너 광고</div>
-              <div class="ad-card__desc">여기에 광고가 들어갈 예정입니다.</div>
-            </div>
-            <img class="ad-card__thumb" alt="광고 이미지"
-                 src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Crect width='48' height='48' rx='8' fill='%23ff8a3d'/%3E%3Ctext x='50%25' y='58%25' font-size='24' text-anchor='middle' dominant-baseline='middle'%3E%F0%9F%93%A2%3C/text%3E%3C/svg%3E">
-          </a>
+          <!-- 1. 광고 배너 (3초 간격 자동 전환) -->
+          <div class="ad-banner" id="ad-banner">
+            <span class="ad-banner__tag">AD</span>
+            <img class="ad-banner__img" id="ad-banner-img" alt="광고 배너">
+          </div>
 
           <!-- 2. 공지 -->
           <div class="notice-line">
@@ -176,6 +171,12 @@
     <!-- 우측 지도 영역: Leaflet 지도만 띄운다 (마커/검색 연동은 아직 없음) -->
     <div class="map-area">
       <div id="map"></div>
+
+      <!-- 지도 위 광고 배너 (3초 간격 자동 전환) -->
+      <div class="map-ad-banner" id="map-ad-banner">
+        <span class="map-ad-banner__tag">AD</span>
+        <img class="map-ad-banner__img" id="map-ad-banner-img" alt="지도 광고 배너">
+      </div>
 
       <button type="button" id="locate-btn" class="map-area__locate" title="내 위치">⊙</button>
 
@@ -882,6 +883,51 @@
       mobileToggle.textContent = collapsed ? "▼" : "▲";
       setTimeout(function () { if (map) map.invalidateSize(); }, 0);
     });
+
+    // ===== 광고 배너 (3초 간격 자동 전환) =====
+    (function () {
+      const images = [
+        "/static/img/adv/1_한샘아트웍.png",
+        "/static/img/adv/2_우로봇.png",
+        "/static/img/adv/3_티렌.png",
+      ];
+      const img = document.getElementById("ad-banner-img");
+      if (!img || images.length === 0) return;
+
+      let idx = 0;
+      img.src = images[idx];
+
+      setInterval(function () {
+        idx = (idx + 1) % images.length;
+        img.style.opacity = 0;
+        setTimeout(function () {
+          img.src = images[idx];
+          img.style.opacity = 1;
+        }, 300);
+      }, 3000);
+    })();
+
+    // ===== 지도 위 광고 배너 (3초 간격 자동 전환) =====
+    (function () {
+      const images = [
+        "/static/img/adv/4_마우저.jpg",
+        "/static/img/adv/5_디지키.jpg",
+      ];
+      const img = document.getElementById("map-ad-banner-img");
+      if (!img || images.length === 0) return;
+
+      let idx = 0;
+      img.src = images[idx];
+
+      setInterval(function () {
+        idx = (idx + 1) % images.length;
+        img.style.opacity = 0;
+        setTimeout(function () {
+          img.src = images[idx];
+          img.style.opacity = 1;
+        }, 300);
+      }, 3000);
+    })();
   </script>
 </body>
 </html>
