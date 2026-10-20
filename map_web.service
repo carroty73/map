@@ -1,0 +1,15 @@
+[Unit]
+Description=당근이 지도 웹서버 (map)
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 /home/oyee/webapps/app/map/app.py
+WorkingDirectory=/home/oyee/webapps/app/map
+User=oyee
+Restart=always
+RestartSec=5
+StandardOutput=append:/home/oyee/webapps/app/map/map.log
+StandardError=append:/home/oyee/webapps/app/map/map.log
+
+[Install]
+WantedBy=multi-user.target
