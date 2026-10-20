@@ -191,14 +191,10 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     let map, layerControl;
-    // ===== 지도 배경(밝게/어둡게/일반) =====
+    // ===== 지도 배경 =====
+    // CARTO 밝은/어두운 지도는 2026-10부터 API 키를 요구해서("API KEY REQUIRED") 뺐다.
+    // 키가 필요 없는 OpenStreetMap 기본 지도만 쓴다.
     const baseMaps = {
-      "밝은 지도": L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
-        attribution: "&copy; OpenStreetMap, CARTO", maxZoom: 20,
-      }),
-      "어두운 지도": L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
-        attribution: "&copy; OpenStreetMap, CARTO", maxZoom: 20,
-      }),
       "기본 지도": L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution: "&copy; OpenStreetMap", maxZoom: 19,
       }),
