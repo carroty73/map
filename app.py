@@ -229,6 +229,55 @@ PHOTO_GALLERIES = {
 PHOTO_EXTS = {".jpg", ".jpeg", ".png", ".gif", ".webp"}
 
 
+THUMB_SIZE = 480  # 목록에서 보여 주는 미리보기의 긴 변(px)
+
+
+def thumb_path(kind, filename):
+    return os.path.join(photo_dir_for(kind), ".thumbs", filename + ".jpg")
+
+
+def photo_dir_for(kind):
+    return os.path.join(app.root_path, "static", "photos", PHOTO_GALLERIES[kind]["folder"])
+
+
+def ensure_thumb(kind, filename):
+    """작은 미리보기를 만들어 두고 경로를 돌려준다. 만들 수 없으면 None."""
+    src = os.path.join(photo_dir_for(kind), filename)
+    dst = thumb_path(kind, filename)
+    try:
+        if os.path.isfile(dst) and os.path.getmtime(dst) >= os.path.getmtime(src):
+            return dst
+        from PIL import Image, ImageOps  # Pillow가 없으면 원본을 그대로 보여 준다
+        Image.MAX_IMAGE_PIXELS = 120_000_000
+        os.makedirs(os.path.dirname(dst), exist_ok=True)
+        with Image.open(src) as im:
+            if im.format == "JPEG":
+                im.draft("RGB", (THUMB_SIZE * 2, THUMB_SIZE * 2))  # 큰 JPEG를 빠르게 줄여 읽는다
+            im = ImageOps.exif_transpose(im)  # 폰 사진의 회전 정보를 반영
+            im.thumbnail((THUMB_SIZE, THUMB_SIZE))
+            if im.mode in ("RGBA", "LA", "P"):
+                im = im.convert("RGBA")
+                bg = Image.new("RGB", im.size, (255, 255, 255))
+                bg.paste(im, mask=im.getchannel("A"))
+                im = bg
+            else:
+                im = im.convert("RGB")
+            tmp = dst + ".tmp"
+            im.save(tmp, "JPEG", quality=80, optimize=True)
+            os.replace(tmp, dst)
+        return dst
+    except Exception as e:
+        print(f"썸네일 생성 실패({filename}): {e}")
+        return None
+
+
+def remove_thumb(kind, filename):
+    try:
+        os.remove(thumb_path(kind, filename))
+    except OSError:
+        pass
+
+
 def list_photos(kind):
     gallery = PHOTO_GALLERIES.get(kind)
     if not gallery:
@@ -243,6 +292,7 @@ def list_photos(kind):
     return [
         {
             "url": f"/static/photos/{gallery['folder']}/{n}",
+            "thumb": f"/api/photos/{kind}/thumb/{n}",
             "label": os.path.splitext(n)[0],
             "filename": n,
         }
@@ -336,6 +386,20 @@ def api_photos_upload(kind):
     return jsonify({"saved": saved, "errors": errors})
 
 
+@app.route("/api/photos/<kind>/thumb/<filename>")
+def api_photos_thumb(kind, filename):
+    if kind not in PHOTO_GALLERIES:
+        abort(404)
+    if filename != os.path.basename(filename) or os.path.splitext(filename)[1].lower() not in PHOTO_EXTS:
+        abort(400)
+    if not os.path.isfile(os.path.join(photo_dir_for(kind), filename)):
+        abort(404)
+    path = ensure_thumb(kind, filename)
+    if not path:  # 미리보기를 못 만들면 원본으로 대신한다
+        path = os.path.join(photo_dir_for(kind), filename)
+    return send_file(path, max_age=86400)
+
+
 @app.route("/api/photos/<kind>/<filename>", methods=["PATCH"])
 def api_photos_rename(kind, filename):
     if kind not in PHOTO_GALLERIES:
@@ -360,6 +424,7 @@ def api_photos_rename(kind, filename):
     if os.path.exists(dst):
         return jsonify({"error": "같은 이름의 사진이 이미 있습니다."}), 409
     os.rename(src, dst)
+    remove_thumb(kind, filename)
     return jsonify({"filename": new_name, "label": os.path.splitext(new_name)[0]})
 
 
@@ -376,6 +441,7 @@ def api_photos_delete(kind, filename):
     if not os.path.isfile(path):
         abort(404)
     os.remove(path)
+    remove_thumb(kind, filename)
     return jsonify({"deleted": filename})
 
 

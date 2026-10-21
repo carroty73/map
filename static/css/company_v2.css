@@ -131,20 +131,17 @@ html, body {
   border-left: 1px solid #ddd;
 }
 
-/* 버튼마다 주황 계열 색을 조금씩 다르게: 평소에는 글자색, 선택하면 배경색으로 나타난다 */
-.domain-toggle button[data-domain="company"] { --tone: #ff8a3d; }
-.domain-toggle button[data-domain="hotspot"] { --tone: #f0603a; }
-.domain-toggle button[data-gallery="food"] { --tone: #e69a1f; }
-.domain-toggle button[data-gallery="fun"] { --tone: #d9703a; }
-
-.domain-toggle button {
-  color: var(--tone, #666);
-}
+/* 토글 버튼마다 Notion 색(옅은 배경 + 진한 글씨)을 쓴다.
+   평소에는 기본 색(흰 배경, 회색 글씨)이고, 선택하면 그 버튼의 색이 나타난다. */
+.domain-toggle button[data-domain="company"] { --bg-on: #cde7f1; --fg-on: #337ea9; }
+.domain-toggle button[data-domain="hotspot"] { --bg-on: #f9d3d5; --fg-on: #d44c47; }
+.domain-toggle button[data-gallery="food"] { --bg-on: #f6e4a8; --fg-on: #b27d1c; }
+.domain-toggle button[data-gallery="fun"] { --bg-on: #cfe5cf; --fg-on: #448361; }
 
 .domain-toggle button.active {
-  background: var(--tone, #ff8a3d);
-  color: #fff;
-  font-weight: 600;
+  background: var(--bg-on, #ff8a3d);
+  color: var(--fg-on, #fff);
+  font-weight: 700;
 }
 
 .sidebar__categories button {
@@ -328,6 +325,7 @@ html, body {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+  scrollbar-gutter: stable; /* 스크롤바가 생기고 사라질 때 버튼 폭이 흔들리지 않게 자리를 항상 확보 */
 }
 
 .sidebar__panel {
@@ -835,4 +833,30 @@ body.sidebar-collapsed .sidebar {
   border-radius: 4px;
   font: inherit;
   font-weight: 600;
+}
+
+/* 모바일: 사진은 한 줄에 2개씩 */
+@media (max-width: 768px) {
+  .gallery-area {
+    padding: 12px;
+  }
+
+  .gallery-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .gallery-card__name {
+    font-size: 12px;
+    padding: 6px 8px 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .gallery-card__dl,
+  .gallery-card__del {
+    margin-left: 8px;
+    margin-right: 8px;
+  }
 }
