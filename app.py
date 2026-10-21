@@ -18,6 +18,7 @@ from flask import (
     render_template,
     jsonify,
     abort,
+    redirect,
 )
 import json
 import re
@@ -224,20 +225,18 @@ PHOTO_GALLERIES = {
 PHOTO_EXTS = {".jpg", ".jpeg", ".png", ".gif", ".webp"}
 
 
-@app.route("/photos/<kind>")
-def photo_gallery(kind):
+def list_photos(kind):
     gallery = PHOTO_GALLERIES.get(kind)
     if not gallery:
-        abort(404)
+        return None
     folder = os.path.join(app.root_path, "static", "photos", gallery["folder"])
     names = []
     if os.path.isdir(folder):
-        names = [
+        names = sorted(
             n for n in os.listdir(folder)
             if os.path.splitext(n)[1].lower() in PHOTO_EXTS
-        ]
-        names.sort()
-    photos = [
+        )
+    return [
         {
             "url": f"/static/photos/{gallery['folder']}/{n}",
             "label": os.path.splitext(n)[0],
@@ -245,9 +244,23 @@ def photo_gallery(kind):
         }
         for n in names
     ]
-    return render_template(
-        "gallery.html", gallery=gallery, kind=kind, galleries=PHOTO_GALLERIES, photos=photos
-    )
+
+
+@app.route("/api/photos/<kind>")
+def api_photos(kind):
+    photos = list_photos(kind)
+    if photos is None:
+        abort(404)
+    gallery = PHOTO_GALLERIES[kind]
+    return jsonify({"title": gallery["title"], "desc": gallery["desc"], "folder": gallery["folder"], "photos": photos})
+
+
+@app.route("/photos/<kind>")
+def photo_gallery(kind):
+    # 갤러리는 지도 페이지 안(왼쪽 슬라이드 유지)에서 열린다. 예전 주소는 그리로 보낸다.
+    if kind not in PHOTO_GALLERIES:
+        abort(404)
+    return redirect(f"/main#photos-{kind}")
 
 
 @app.route("/robots.txt")

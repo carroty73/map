@@ -7,7 +7,7 @@
   <link rel="icon" href="/static/img/logo-og.png">
   <link rel="apple-touch-icon" href="/static/img/logo-og-touch.png">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <link rel="stylesheet" href="/static/css/company_v2.css?v=9">
+  <link rel="stylesheet" href="/static/css/company_v2.css?v=10">
 </head>
 <body>
   <script>if (window.matchMedia("(max-width: 768px)").matches) document.body.classList.add("sidebar-collapsed");</script>
@@ -45,8 +45,8 @@
           <div class="domain-toggle" id="search-domain-toggle">
             <button type="button" class="active" data-domain="company">회사</button>
             <button type="button" data-domain="hotspot">핫플</button>
-            <a href="/photos/food">음식사진</a>
-            <a href="/photos/fun">사진모음</a>
+            <button type="button" data-gallery="food">음식사진</button>
+            <button type="button" data-gallery="fun">사진모음</button>
           </div>
 
           <div class="sidebar__categories" data-domain="company">
@@ -188,6 +188,15 @@
       <div class="map-area__zoom">
         <button type="button">+</button>
         <button type="button">-</button>
+      </div>
+
+      <!-- 음식사진/사진모음: 지도 대신 이 영역을 덮어서 보여 준다 (왼쪽 슬라이드는 그대로) -->
+      <div id="gallery-area" class="gallery-area" hidden>
+        <div class="gallery-area__head">
+          <h2 id="gallery-title"></h2>
+          <p id="gallery-desc"></p>
+        </div>
+        <div id="gallery-grid" class="gallery-grid"></div>
       </div>
     </div>
 
@@ -538,12 +547,76 @@
     }
 
     // 검색 패널 안의 핫플/회사 토글: 아래 카테고리 아이콘 세트 + 지도 위 마커를 함께 바꾼다.
-    const domainButtons = document.querySelectorAll("#search-domain-toggle button");
+    const domainButtons = document.querySelectorAll("#search-domain-toggle button[data-domain]");
     const categoryGroups = document.querySelectorAll(".sidebar__categories");
-    let activeDomain = document.querySelector("#search-domain-toggle button.active").getAttribute("data-domain");
+    let activeDomain = document.querySelector("#search-domain-toggle button.active[data-domain]").getAttribute("data-domain");
+
+    // 음식사진/사진모음: 지도 대신 갤러리를 보여 준다. 왼쪽 슬라이드(토글 줄)는 그대로 남는다.
+    const galleryButtons = document.querySelectorAll("#search-domain-toggle button[data-gallery]");
+    const galleryArea = document.getElementById("gallery-area");
+    const galleryGrid = document.getElementById("gallery-grid");
+    const sidebarListEls = [document.getElementById("place-list-title"), document.getElementById("place-list")];
+
+    function leaveGallery() {
+      galleryArea.hidden = true;
+      galleryButtons.forEach(function (b) { b.classList.remove("active"); });
+      sidebarListEls.forEach(function (el) { el.hidden = false; });
+    }
+
+    function showGallery(kind) {
+      domainButtons.forEach(function (b) { b.classList.remove("active"); });
+      galleryButtons.forEach(function (b) {
+        b.classList.toggle("active", b.getAttribute("data-gallery") === kind);
+      });
+      categoryGroups.forEach(function (group) { group.hidden = true; });
+      sidebarListEls.forEach(function (el) { el.hidden = true; });
+      galleryArea.hidden = false;
+      galleryGrid.innerHTML = "";
+      fetch("/api/photos/" + encodeURIComponent(kind))
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          document.getElementById("gallery-title").textContent = data.title;
+          document.getElementById("gallery-desc").textContent = data.desc + " - 내려받기 버튼을 누르세요.";
+          if (!data.photos.length) {
+            const empty = document.createElement("div");
+            empty.className = "gallery-empty";
+            empty.textContent = "아직 사진이 없습니다. 서버의 static/photos/" + data.folder + "/ 폴더에 이미지를 넣으면 나타납니다.";
+            galleryGrid.appendChild(empty);
+            return;
+          }
+          data.photos.forEach(function (p) {
+            const card = document.createElement("div");
+            card.className = "gallery-card";
+            const img = document.createElement("img");
+            img.src = p.url; img.alt = p.label; img.loading = "lazy";
+            const name = document.createElement("div");
+            name.className = "gallery-card__name"; name.textContent = p.label;
+            const dl = document.createElement("a");
+            dl.className = "gallery-card__dl"; dl.href = p.url; dl.setAttribute("download", p.filename);
+            dl.textContent = "내려받기";
+            card.appendChild(img); card.appendChild(name); card.appendChild(dl);
+            galleryGrid.appendChild(card);
+          });
+        })
+        .catch(function () {
+          galleryGrid.innerHTML = '<div class="gallery-empty">사진 목록을 불러오지 못했습니다.</div>';
+        });
+    }
+
+    galleryButtons.forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        showGallery(btn.getAttribute("data-gallery"));
+        if (window.matchMedia("(max-width: 768px)").matches) {
+          document.body.classList.add("sidebar-collapsed");
+        }
+        history.replaceState(null, "", "#photos-" + btn.getAttribute("data-gallery"));
+      });
+    });
 
     domainButtons.forEach(function (btn) {
       btn.addEventListener("click", function () {
+        leaveGallery();
+        history.replaceState(null, "", location.pathname + location.search);
         domainButtons.forEach(function (b) { b.classList.remove("active"); });
         btn.classList.add("active");
 
@@ -577,6 +650,10 @@
         });
       });
     });
+
+    // 주소가 #photos-food / #photos-fun 이면 갤러리를 바로 연다
+    const photosHash = /^#photos-(food|fun)$/.exec(location.hash);
+    if (photosHash) showGallery(photosHash[1]);
 
     // ===== 검색 =====
     const searchInput = document.getElementById("search-input");
