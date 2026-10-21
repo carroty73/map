@@ -7,7 +7,7 @@
   <link rel="icon" href="/static/img/logo-og.png">
   <link rel="apple-touch-icon" href="/static/img/logo-og-touch.png">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <link rel="stylesheet" href="/static/css/company_v2.css?v=20">
+  <link rel="stylesheet" href="/static/css/company_v2.css?v=21">
 </head>
 <body>
   <script>if (window.matchMedia("(max-width: 768px)").matches) document.body.classList.add("sidebar-collapsed");</script>
@@ -825,8 +825,8 @@
       function refreshAllBtn() {
         const anyOn = catButtons().some(function (b) { return !b.classList.contains("is-off"); });
         allBtn.innerHTML = anyOn
-          ? '<img src="/static/ico/pack_2/15_eye_open.png" alt=""><span>모두 끄기</span>'
-          : '<img src="/static/ico/pack_2/16_eye_closed.png" alt=""><span>모두 켜기</span>';
+          ? '<span class="icon"><img src="/static/ico/pack_2/15_eye_open.png" alt=""></span><span>모두 끄기</span>'
+          : '<span class="icon"><img src="/static/ico/pack_2/16_eye_closed.png" alt=""></span><span>모두 켜기</span>';
         allBtn.setAttribute("aria-label", anyOn ? "모두 끄기" : "모두 켜기");
       }
       allBtn.addEventListener("click", function () {
