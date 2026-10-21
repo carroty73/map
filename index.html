@@ -75,6 +75,7 @@
             <button type="button"><span class="icon"><img src="/static/ico/pack_2/12_royal_tomb.png" alt=""></span><span>조선 왕릉</span></button>
             <button type="button"><span class="icon"><img src="/static/ico/pack_2/13_grave.png" alt=""></span><span>역사 인물 묘</span></button>
             <button type="button"><span class="icon"><img src="/static/ico/pack_2/14_heritage.png" alt=""></span><span>문화재</span></button>
+            <button type="button"><span class="icon"><img src="/static/ico/pack_2/09_other.png" alt=""></span><span>기타</span></button>
           </div>
 
           <div class="sidebar__section-title" id="place-list-title">장소 목록</div>
@@ -506,6 +507,8 @@
       });
       if (!groups[domain]) return;
       Object.keys(groups[domain]).forEach(function (cat) {
+        const btn = categoryButtonMap[domain] && categoryButtonMap[domain][cat];
+        if (btn && btn.classList.contains("is-off")) return;
         map.addLayer(groups[domain][cat]);
       });
     }
@@ -831,11 +834,12 @@
       }
       allBtn.addEventListener("click", function () {
         const turnOff = catButtons().some(function (b) { return !b.classList.contains("is-off"); });
+        // 버튼이 없는 카테고리(예: 핫플의 기타)도 포함해 이 영역의 모든 레이어를 켜고 끈다.
         Object.keys(categoryButtonMap[domain]).forEach(function (category) {
-          const btn = categoryButtonMap[domain][category];
-          const g = groups[domain] && groups[domain][category];
-          btn.classList.toggle("is-off", turnOff);
-          if (!g) return;
+          categoryButtonMap[domain][category].classList.toggle("is-off", turnOff);
+        });
+        Object.keys(groups[domain] || {}).forEach(function (category) {
+          const g = groups[domain][category];
           if (turnOff) map.removeLayer(g);
           else if (domain === activeDomain) map.addLayer(g);
         });
