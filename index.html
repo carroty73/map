@@ -7,7 +7,7 @@
   <link rel="icon" href="/static/img/logo-og.png">
   <link rel="apple-touch-icon" href="/static/img/logo-og-touch.png">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <link rel="stylesheet" href="/static/css/company_v2.css?v=21">
+  <link rel="stylesheet" href="/static/css/company_v2.css?v=22">
 </head>
 <body>
   <script>if (window.matchMedia("(max-width: 768px)").matches) document.body.classList.add("sidebar-collapsed");</script>
@@ -473,7 +473,8 @@
             '<span class="sidebar__list-item-name">' + escapeHtml(item.name) + "</span>" +
             favStarHtml(item.id) +
           "</div>" +
-          '<span class="sidebar__list-item-addr">' + escapeHtml(item.address) + "</span>" +
+          '<span class="sidebar__list-item-addr">' + (dup ? '<b class="sidebar__list-item-dup">같은 이름</b> ' : "") +
+            escapeHtml(item.category) + " · " + escapeHtml(item.address) + "</span>" +
           (item.url ? '<a class="sidebar__list-item-link" href="' + escapeHtml(item.url) +
             '" target="_blank" rel="noopener">자세히 보기</a>' : "");
         const star = li.querySelector(".fav-star");
@@ -945,15 +946,20 @@
         placeListEl.appendChild(li);
         return;
       }
+      // 같은 이름이 여러 개면 카테고리와 주소로 구분해서 고르게 한다.
+      const nameCount = {};
+      items.forEach(function (item) { const k = normalize(item.name); nameCount[k] = (nameCount[k] || 0) + 1; });
       items.forEach(function (item) {
         const li = document.createElement("li");
         li.className = "sidebar__list-item";
+        const dup = nameCount[normalize(item.name)] > 1;
         li.innerHTML =
           '<div class="sidebar__list-item-row">' +
             '<span class="sidebar__list-item-name">' + escapeHtml(item.name) + "</span>" +
             favStarHtml(item.id) +
           "</div>" +
-          '<span class="sidebar__list-item-addr">' + escapeHtml(item.address) + "</span>" +
+          '<span class="sidebar__list-item-addr">' + (dup ? '<b class="sidebar__list-item-dup">같은 이름</b> ' : "") +
+            escapeHtml(item.category) + " · " + escapeHtml(item.address) + "</span>" +
           (item.url ? '<a class="sidebar__list-item-link" href="' + escapeHtml(item.url) +
             '" target="_blank" rel="noopener">자세히 보기</a>' : "");
         li.addEventListener("click", function () { goToPlace(item); });
@@ -978,7 +984,11 @@
         const q = searchInput.value.trim();
         if (!q) return;
         const found = findPlaces(q, activeDomain);
-        if (found.length) {
+        if (found.length > 1 && found.every(function (f) { return normalize(f.name) === normalize(found[0].name); })) {
+          // 이름이 같은 곳이 여러 개: 임의로 첫 번째로 가지 않고 목록에서 고르게 한다.
+          renderSearchResults(found);
+          placeListTitleEl.textContent = "같은 이름 " + found.length + "곳 - 아래에서 선택하세요";
+        } else if (found.length) {
           goToPlace(found[0]);
         } else {
           searchByAddress(q);
