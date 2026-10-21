@@ -94,3 +94,15 @@ python app.py
   합니다 — 추적되는 소스 트리에는 포함되지 않습니다.
 - `index.html`의 OG 이미지/메타 URL은 서버 IP와 포트(`221.138.105.134:8001`)가
   하드코딩되어 있습니다 — 배포 호스트/포트가 바뀌면 이 값도 갱신해야 합니다.
+
+## 2026-10-21 작업 기록 (사이드바, 카테고리, 갤러리)
+
+- **서버 재시작**: `app.py`를 고치면 `map_web` 재시작이 필요한데 Claude는 `sudo` 비밀번호가 없어 못 한다. 사용자가 `! sudo systemctl restart map_web`을 입력해야 한다(위 규칙 2의 "스스로 재실행"은 이 환경에서 불가). `index.html`과 CSS는 재시작 없이 새로고침만 하면 된다(CSS는 `company_v2.css?v=N` 숫자를 올려 캐시를 깬다, 지금 13).
+- **사이드바 열기/닫기**: book 페이지와 같은 햄버거 버튼(투명 배경 ☰, `body.sidebar-collapsed`). PC는 폭 0으로 접히고 열닫힘 중 매 프레임 `map.invalidateSize`로 움찔임을 막는다. 모바일은 서랍 + 어두운 배경.
+- **카테고리 이름**: 화면의 "맛집"은 "핫플"로 바꿨다(화면 글자만, Notion 값과 코드 키 `hotspot`은 그대로). 핫플 하위에 `산`, `바다`, `조선 왕릉`, `역사 인물 묘`를 추가했다. 새 카테고리는 **Notion `카테고리` 선택지, `app.py`의 `CATEGORY_VISIBLE`, `index.html`의 `hotspotIconFiles`와 버튼, 아이콘 파일** 네 곳을 맞춰야 한다. 아이콘은 `static/ico/pack_2/10_mountain`, `11_sea`, `12_royal_tomb`, `13_grave`(`.png`, 512x512 투명). 원본은 `static/ico/pack_2_원본/`(git 제외).
+- **Notion 데이터**: 조선 왕릉은 제1~27대 27개 행(연산군묘, 광해군묘 포함), 역사 인물 묘는 의순공주 묘, 해원군묘, 정문부 장군 묘, 신숙주 선생묘 4개. 산, 바다는 아직 장소를 넣지 않았다(산은 의정부 근처 샘플, 지오코딩이 틀리기 쉬우니 넣을 때마다 지도에서 직접 확인).
+- **음식사진, 웃긴사진 갤러리**: 사이드바 토글 줄(`회사 | 핫플 | 음식사진 | 웃긴사진`)의 버튼. 지도 대신 `#gallery-area`가 지도 영역을 덮고 사이드바는 그대로다. 주소 `/main#photos-food`, `/main#photos-fun`(`/photos/<kind>`는 그리로 리다이렉트). 사진은 `static/photos/food/`, `static/photos/fun/`에 둔다. 사진은 git에 올리지 않고 서버에만 둔다(`.gitignore`, `.gitkeep`만 기록). 서버 디스크가 유일한 보관본이다.
+- **갤러리 업로드/삭제/이름 바꾸기**: 비밀번호로 제한(`.env`의 `UPLOAD_PASSWORD`, 값은 사용자가 정함, 미설정이면 503). 갤러리의 "관리" 버튼에서 입력하면 브라우저 localStorage에 기억된다. API는 `/api/photos/<kind>` GET, `/upload` POST, `/<filename>` DELETE와 PATCH, `/api/photos/auth` POST. 파일 내용(매직바이트)으로 jpg, png, gif, webp만 받고(jfif는 jpg로 저장, HEIC는 거부), 한 장 10MB, 요청 전체 80MB. nginx `map.carroty.com`에 `client_max_body_size 80m`을 넣었다(백업 `map.carroty.com.bak-upload`). **그 설정을 지우지 말 것.**
+- **방문자 수에서 내 IP 제외**: `.env`의 `MY_IP`(쉼표로 여러 개). 서버는 Cloudflare의 `CF-Connecting-IP` 헤더를 읽으므로 `127.0.0.1`은 서버 컴퓨터에서 직접 접속할 때만 해당한다. 사용자 공인 IP도 넣어야 `map.carroty.com` 접속이 제외된다.
+- **테스트할 때 주의**: 실제 사진 폴더(`static/photos/`)에서 테스트하고 일괄 삭제하다 사용자가 올린 사진을 지운 적이 있다(복구 불가). 테스트는 임시 폴더를 쓰고, 지울 때는 직접 만든 파일 이름만 골라 지운다.
+- **남은 일**: (1) 검색 결과에 이름이 같은 업체가 여러 개일 때 주소와 카테고리를 보여 주고 고르게 하기(사용자가 "다음에"로 미룸). (2) 산, 바다 샘플 장소 넣기. (3) 같은 증상이 반복되면 업로드를 한 장씩 차례로 보내고 장별 결과를 보여 주기(한 번 여러 장 업로드가 중간에서 끊긴 적 있음, 원인 미확정). (4) 아이폰 HEIC 지원이 필요하면 서버 변환 도구 설치.

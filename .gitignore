@@ -6,3 +6,10 @@ __pycache__/
 *.pyc
 .claude/settings.local.json
 map.log
+
+# 갤러리 사진은 서버에만 둔다(폴더 자리표시 .gitkeep만 기록)
+static/photos/*/*
+!static/photos/*/.gitkeep
+
+# 아이콘 원본 보관 폴더
+static/ico/pack_2_원본/
