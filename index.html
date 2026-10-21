@@ -7,9 +7,14 @@
   <link rel="icon" href="/static/img/logo-og.png">
   <link rel="apple-touch-icon" href="/static/img/logo-og-touch.png">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <link rel="stylesheet" href="/static/css/company_v2.css?v=6">
+  <link rel="stylesheet" href="/static/css/company_v2.css?v=8">
 </head>
 <body>
+  <script>if (window.matchMedia("(max-width: 768px)").matches) document.body.classList.add("sidebar-collapsed");</script>
+  <!-- 사이드바 열기/닫기 햄버거 버튼 (book 페이지와 동일한 방식) -->
+  <button id="sidebar-toggle" class="sidebar-toggle" type="button" aria-label="사이드바 열기/닫기">☰</button>
+  <div id="sidebar-backdrop" class="sidebar-backdrop" aria-hidden="true"></div>
+
   <div class="layout">
 
     <!-- 좌측 사이드바: 지금은 모양만 (지도/검색 로직 없음), 탭 전환 + 접기/펼치기만 동작 -->
@@ -160,12 +165,6 @@
         </div>
         -->
       </div>
-
-      <!-- 사이드바 전체를 접었다 펼치는 토글 버튼 (PC: 좌우) -->
-      <button type="button" id="sidebar-toggle" class="sidebar__toggle" title="사이드바 접기/펼치기">◀</button>
-
-      <!-- 모바일 전용: 상단 바 아래 내용(카테고리/목록/폼 등)만 접었다 펼치는 버튼 -->
-      <button type="button" id="mobile-toggle" class="sidebar__mobile-toggle" title="내용 접기/펼치기">▲</button>
     </div>
 
     <!-- 우측 지도 영역: Leaflet 지도만 띄운다 (마커/검색 연동은 아직 없음) -->
@@ -861,23 +860,29 @@
     initMap();
     renderFavoritesPanel();
 
-    // 사이드바 접기/펼치기 토글: 접으면 왼쪽으로 숨으면서 아이콘만 남은 좁은 형태가 된다.
-    const sidebar = document.getElementById("sidebar");
+    // 사이드바 열기/닫기 (book 페이지와 동일): 햄버거 버튼으로 토글, 모바일에서는 어두운 배경을 누르면 닫힌다.
     const sidebarToggle = document.getElementById("sidebar-toggle");
+    const sidebarBackdrop = document.getElementById("sidebar-backdrop");
+
+    // 사이드바 폭이 0.2초 동안 줄어드는 동안 지도 크기를 매 프레임 맞춘다.
+    // (끝난 뒤에 한 번만 맞추면 마지막에 지도가 움찔한다)
+    function refreshMapSize() {
+      const start = performance.now();
+      function step(now) {
+        if (map) map.invalidateSize({ animate: false });
+        if (now - start < 260) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
 
     sidebarToggle.addEventListener("click", function () {
-      const collapsed = sidebar.classList.toggle("sidebar--collapsed");
-      sidebarToggle.textContent = collapsed ? "▶" : "◀";
-      setTimeout(function () { if (map) map.invalidateSize(); }, 220);
+      document.body.classList.toggle("sidebar-collapsed");
+      refreshMapSize();
     });
 
-    // 모바일 전용 토글: 상단 바 아래 내용(패널)만 접었다 펼친다.
-    const mobileToggle = document.getElementById("mobile-toggle");
-
-    mobileToggle.addEventListener("click", function () {
-      const collapsed = sidebar.classList.toggle("sidebar--mobile-collapsed");
-      mobileToggle.textContent = collapsed ? "▼" : "▲";
-      setTimeout(function () { if (map) map.invalidateSize(); }, 0);
+    sidebarBackdrop.addEventListener("click", function () {
+      document.body.classList.add("sidebar-collapsed");
+      refreshMapSize();
     });
 
     // ===== 광고 배너 (3초 간격 자동 전환) =====

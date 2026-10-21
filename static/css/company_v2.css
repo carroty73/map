@@ -502,65 +502,50 @@ html, body {
   cursor: pointer;
 }
 
-/* 사이드바 접기/펼치기 토글 버튼 (사이드바 우측 가장자리에 붙은 화살표) */
-.sidebar {
-  position: relative;
-}
-
-.sidebar__toggle {
-  position: absolute;
-  top: 50%;
-  right: -14px;
-  transform: translateY(-50%);
-  width: 28px;
-  height: 28px;
-  border: 1px solid #ddd;
-  border-radius: 50%;
-  background: #fff;
-  font-size: 12px;
+/* 사이드바 열기/닫기: book 페이지와 같은 햄버거 버튼(☰). 닫으면 폭이 0이 되고 지도가 전체 폭을 쓴다 */
+.sidebar-toggle {
+  position: fixed;
+  top: 14px;
+  left: 14px;
+  z-index: 50;
+  width: 38px;
+  height: 38px;
+  border-radius: 6px;
+  border: none;
+  background: transparent; /* 투명: 열렸을 때는 주황 헤더, 닫혔을 때는 지도가 비쳐 보인다 */
+  color: #fff;
   cursor: pointer;
-  z-index: 5;
+  font-size: 22px;
+  line-height: 1;
 }
 
-/* 접힌 상태: 사이드바 폭을 줄이고, 내용물은 숨긴 채 토글 버튼만 남긴다 */
-.sidebar--collapsed {
-  width: 56px;
-  min-width: 56px;
+.sidebar-toggle:hover {
+  background: rgba(255, 255, 255, 0.2);
 }
 
-.sidebar--collapsed .sidebar__header,
-.sidebar--collapsed .sidebar__search,
-.sidebar--collapsed .sidebar__tabs {
+/* 닫히면 흰색 글자가 밝은 지도에 묻히므로 짙은 색으로 바꾼다 */
+body.sidebar-collapsed .sidebar-toggle {
+  color: #333;
+}
+
+body.sidebar-collapsed .sidebar-toggle:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-backdrop {
   display: none;
 }
 
-/* 접힌 상태에서는 탭과 상관없이 카테고리 아이콘만 세로로 보여준다 */
-.sidebar--collapsed .sidebar__panels {
-  display: block;
-  overflow: visible;
+body.sidebar-collapsed .sidebar {
+  width: 0;
+  min-width: 0;
+  overflow: hidden;
+  border-right: none;
 }
 
-.sidebar--collapsed .sidebar__panel {
-  display: none;
-}
-
-.sidebar--collapsed #panel-search {
-  display: block;
-}
-
-.sidebar--collapsed .sidebar__section-title,
-.sidebar--collapsed .sidebar__list,
-.sidebar--collapsed .domain-toggle {
-  display: none;
-}
-
-.sidebar--collapsed .sidebar__categories {
-  grid-template-columns: 1fr;
-  padding: 12px 0;
-}
-
-.sidebar--collapsed .sidebar__categories span:last-child {
-  display: none;
+/* 햄버거 버튼이 로고 위에 겹치지 않게 헤더 왼쪽을 비운다 */
+.sidebar__header {
+  padding-left: 62px;
 }
 
 /* 우측 지도 영역 (지금은 자리만 차지하는 자리표시자) */
@@ -649,69 +634,37 @@ html, body {
   border-top: 1px solid #eee;
 }
 
-/* 모바일 전용 상하 접기 토글 버튼: 데스크톱에서는 숨김 */
-.sidebar__mobile-toggle {
-  display: none;
-}
-
 /* ===== 모바일 반응형 (768px 이하) ===== */
 @media (max-width: 768px) {
-  .layout {
-    flex-direction: column;
-  }
-
-  /* 사이드바를 상단 바로: 전체 폭, 높이는 화면의 절반 정도로 제한 */
+  /* 사이드바는 화면 왼쪽에서 밀려 나오는 서랍(book과 동일). 지도는 항상 전체 화면 */
   .sidebar {
-    width: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: min(360px, 86vw);
     min-width: 0;
-    height: auto;
-    max-height: 60vh;
-    border-right: none;
-    border-bottom: 1px solid #e5e5e5;
+    height: 100%;
+    z-index: 45;
+    transform: translateX(0);
+    transition: transform 0.2s ease;
   }
 
-  /* 접기/펼치기 토글은 좌우 레이아웃 전용 기능이라 모바일에서는 숨긴다 */
-  .sidebar__toggle {
-    display: none;
-  }
-
-  .sidebar--collapsed {
-    width: 100%;
+  body.sidebar-collapsed .sidebar {
+    width: min(360px, 86vw);
     min-width: 0;
+    transform: translateX(-100%);
   }
 
-  /* 모바일 상하 토글 버튼: 상단 바 하단 가운데에 붙여둔다 */
-  .sidebar__mobile-toggle {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: absolute;
-    left: 50%;
-    bottom: -14px;
-    transform: translateX(-50%);
-    width: 28px;
-    height: 28px;
-    border: 1px solid #ddd;
-    border-radius: 50%;
-    background: #fff;
-    font-size: 12px;
-    cursor: pointer;
-    z-index: 5;
+  body:not(.sidebar-collapsed) .sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 40;
   }
 
-  /* 이 버튼을 누르면 상단 바 아래 패널(카테고리/목록/폼 등)만 숨기고,
-     검색창+탭까지만 남긴다 */
-  .sidebar--mobile-collapsed {
-    max-height: none;
-  }
-
-  .sidebar--mobile-collapsed .sidebar__panels {
-    display: none;
-  }
-
-  /* 지도는 남은 세로 공간을 전부 차지 */
   .map-area {
-    flex: 1;
-    min-height: 40vh;
+    width: 100%;
+    min-height: 100vh;
   }
 }
