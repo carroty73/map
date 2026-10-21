@@ -7,7 +7,7 @@
   <link rel="icon" href="/static/img/logo-og.png">
   <link rel="apple-touch-icon" href="/static/img/logo-og-touch.png">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <link rel="stylesheet" href="/static/css/company_v2.css?v=18">
+  <link rel="stylesheet" href="/static/css/company_v2.css?v=20">
 </head>
 <body>
   <script>if (window.matchMedia("(max-width: 768px)").matches) document.body.classList.add("sidebar-collapsed");</script>
@@ -809,6 +809,41 @@
           }
         });
       });
+    });
+
+    // 눈 모양 "모두 끄기/켜기" 버튼: 패널마다 맨 위에 하나씩. 하나라도 켜져 있으면 전부 끄고, 전부 꺼져 있으면 전부 켠다.
+    categoryGroups.forEach(function (panel) {
+      const domain = panel.getAttribute("data-domain");
+      const allBtn = document.createElement("button");
+      allBtn.type = "button";
+      allBtn.className = "cat-all-toggle";
+      panel.insertBefore(allBtn, panel.firstChild);
+
+      function catButtons() {
+        return Array.prototype.filter.call(panel.querySelectorAll("button"), function (b) { return b !== allBtn; });
+      }
+      function refreshAllBtn() {
+        const anyOn = catButtons().some(function (b) { return !b.classList.contains("is-off"); });
+        allBtn.innerHTML = anyOn
+          ? '<img src="/static/ico/pack_2/15_eye_open.png" alt=""><span>모두 끄기</span>'
+          : '<img src="/static/ico/pack_2/16_eye_closed.png" alt=""><span>모두 켜기</span>';
+        allBtn.setAttribute("aria-label", anyOn ? "모두 끄기" : "모두 켜기");
+      }
+      allBtn.addEventListener("click", function () {
+        const turnOff = catButtons().some(function (b) { return !b.classList.contains("is-off"); });
+        Object.keys(categoryButtonMap[domain]).forEach(function (category) {
+          const btn = categoryButtonMap[domain][category];
+          const g = groups[domain] && groups[domain][category];
+          btn.classList.toggle("is-off", turnOff);
+          if (!g) return;
+          if (turnOff) map.removeLayer(g);
+          else if (domain === activeDomain) map.addLayer(g);
+        });
+        refreshAllBtn();
+      });
+      // 개별 버튼을 눌러도, 검색으로 이동해도 글자가 맞게 바뀌도록 클래스 변경을 지켜본다.
+      new MutationObserver(refreshAllBtn).observe(panel, { subtree: true, attributes: true, attributeFilter: ["class"] });
+      refreshAllBtn();
     });
 
     // 주소가 #photos-food / #photos-fun 이면 갤러리를 바로 연다

@@ -182,6 +182,28 @@ def select_name(prop, default="기타"):
     return sel.get("name") or default
 
 
+def tag_names(prop):
+    return [t.get("name") for t in ((prop or {}).get("multi_select") or []) if t.get("name")]
+
+
+# Notion 핫플 DB에서는 산과 바다가 "산과 바다" 한 카테고리다. 지도 앱은 산, 바다 버튼과 아이콘이
+# 따로 있으므로, 태그("산"/"바다")를 보고 앱이 쓰는 카테고리로 바꿔서 넘긴다.
+NOTION_SEA_MOUNTAIN = "산과 바다"
+
+
+def app_category(domain, category, name, tags):
+    if domain == "hotspot" and category == NOTION_SEA_MOUNTAIN:
+        if "바다" in tags:
+            return "바다"
+        if "산" in tags:
+            return "산"
+        # 태그를 빼먹었을 때: 이름으로 짐작한다
+        if "해수욕장" in name or "해변" in name:
+            return "바다"
+        return "산"
+    return category
+
+
 def number_or_none(prop):
     if not prop:
         return None
@@ -501,7 +523,9 @@ def api_places():
             if not name or not address:
                 continue
 
-            category = select_name(props.get("카테고리"), "기타")
+            category = app_category(
+                domain["key"], select_name(props.get("카테고리"), "기타"), name, tag_names(props.get("태그"))
+            )
 
             # 1. 노션 DB에 이미 위도, 경도가 기록되어 있는지 확인
             lat = number_or_none(props.get("위도"))
@@ -539,7 +563,7 @@ def api_places():
 DB_ID_BY_DOMAIN = {d["key"]: d["db_id"] for d in DOMAINS}
 
 
-def create_notion_place(db_id, name, owner, address, category, lat, lon, phone, memo, reg_id):
+def create_notion_place(db_id, name, owner, address, category, lat, lon, phone, memo, reg_id, tags=None):
     url = "https://" + "api.notion.com/v1/pages"
     properties = {
         "상호": {"title": [{"text": {"content": name}}]},
@@ -549,6 +573,8 @@ def create_notion_place(db_id, name, owner, address, category, lat, lon, phone, 
         "경도": {"number": lon},
         "숨김": {"checkbox": False},
     }
+    if tags:
+        properties["태그"] = {"multi_select": [{"name": t} for t in tags]}
     if reg_id:
         properties["등록ID"] = {"rich_text": [{"text": {"content": reg_id}}]}
     if owner:
@@ -589,8 +615,11 @@ def api_register():
         return jsonify({"error": "주소로 좌표를 찾지 못했습니다. 주소를 다시 확인해주세요."}), 400
 
     try:
+        notion_category, tags = category, None
+        if domain == "hotspot" and category in ("산", "바다"):
+            notion_category, tags = NOTION_SEA_MOUNTAIN, [category]
         page = create_notion_place(
-            DB_ID_BY_DOMAIN[domain], name, owner, address, category, lat, lon, phone, memo, reg_id,
+            DB_ID_BY_DOMAIN[domain], name, owner, address, notion_category, lat, lon, phone, memo, reg_id, tags,
         )
     except Exception as e:
         return jsonify({"error": str(e)}), 500
