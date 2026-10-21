@@ -215,6 +215,41 @@ def company_page(name):
     return send_file(path)
 
 
+# ===== 사진 갤러리 (지도 없이 이미지를 내려받는 페이지) =====
+# 이미지는 static/photos/<폴더>/ 에 파일만 넣으면 자동으로 목록에 나온다.
+PHOTO_GALLERIES = {
+    "food": {"title": "음식사진", "folder": "food", "desc": "모임할 때 쓰는 음식 이미지"},
+    "fun": {"title": "사진모음", "folder": "fun", "desc": "채팅할 때 쓰는 웃긴 사진, 멋진 사진"},
+}
+PHOTO_EXTS = {".jpg", ".jpeg", ".png", ".gif", ".webp"}
+
+
+@app.route("/photos/<kind>")
+def photo_gallery(kind):
+    gallery = PHOTO_GALLERIES.get(kind)
+    if not gallery:
+        abort(404)
+    folder = os.path.join(app.root_path, "static", "photos", gallery["folder"])
+    names = []
+    if os.path.isdir(folder):
+        names = [
+            n for n in os.listdir(folder)
+            if os.path.splitext(n)[1].lower() in PHOTO_EXTS
+        ]
+        names.sort()
+    photos = [
+        {
+            "url": f"/static/photos/{gallery['folder']}/{n}",
+            "label": os.path.splitext(n)[0],
+            "filename": n,
+        }
+        for n in names
+    ]
+    return render_template(
+        "gallery.html", gallery=gallery, kind=kind, galleries=PHOTO_GALLERIES, photos=photos
+    )
+
+
 @app.route("/robots.txt")
 def robots_txt():
     return send_file("robots.txt")

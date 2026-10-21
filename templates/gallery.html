@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ gallery.title }} - 당근이의 지도</title>
+  <link rel="icon" href="/static/img/logo-og.png">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "Pretendard", -apple-system, sans-serif; background: #fafafa; color: #222; }
+    header { background: #ff8a3d; color: #fff; padding: 14px 16px; display: flex; align-items: center; gap: 12px; }
+    header a.back { color: #fff; text-decoration: none; font-size: 14px; white-space: nowrap; }
+    header h1 { margin: 0; font-size: 20px; }
+    nav { display: flex; gap: 8px; padding: 12px 16px 0; }
+    nav a { padding: 6px 14px; border: 1px solid #ddd; border-radius: 16px; font-size: 13px; color: #666; text-decoration: none; background: #fff; }
+    nav a.active { background: #ff8a3d; border-color: #ff8a3d; color: #fff; font-weight: 600; }
+    p.desc { margin: 12px 16px 0; font-size: 13px; color: #666; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; padding: 16px; }
+    .card { background: #fff; border: 1px solid #eee; border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; }
+    .card img { width: 100%; aspect-ratio: 1 / 1; object-fit: cover; display: block; background: #f0f0f0; }
+    .card .name { padding: 8px 10px 0; font-size: 13px; font-weight: 600; word-break: keep-all; }
+    .card a.dl { margin: 8px 10px 10px; padding: 7px 0; text-align: center; border-radius: 6px; background: #ff8a3d; color: #fff; text-decoration: none; font-size: 13px; }
+    .empty { margin: 40px 16px; text-align: center; color: #888; font-size: 14px; line-height: 1.6; }
+  </style>
+</head>
+<body>
+  <header>
+    <a class="back" href="/main">← 지도</a>
+    <h1>{{ gallery.title }}</h1>
+  </header>
+  <nav>
+    {% for k, g in galleries.items() %}
+    <a href="/photos/{{ k }}"{% if k == kind %} class="active"{% endif %}>{{ g.title }}</a>
+    {% endfor %}
+  </nav>
+  <p class="desc">{{ gallery.desc }} - 이미지 아래 버튼을 눌러 내려받으세요.</p>
+  {% if photos %}
+  <div class="grid">
+    {% for p in photos %}
+    <div class="card">
+      <img src="{{ p.url }}" alt="{{ p.label }}" loading="lazy">
+      <div class="name">{{ p.label }}</div>
+      <a class="dl" href="{{ p.url }}" download="{{ p.filename }}">내려받기</a>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty">아직 사진이 없습니다.<br>서버의 <code>static/photos/{{ gallery.folder }}/</code> 폴더에 이미지를 넣으면 여기에 나타납니다.</div>
+  {% endif %}
+</body>
+</html>

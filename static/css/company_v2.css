@@ -127,8 +127,25 @@ html, body {
   cursor: pointer;
 }
 
-.domain-toggle button + button {
+/* 지도 없는 페이지로 가는 링크(음식사진, 사진모음)도 같은 줄에 버튼처럼 보이게 한다 */
+.domain-toggle a {
+  flex: 1;
+  padding: 8px 0;
+  background: #fff;
+  font-size: 13px;
+  color: #666;
+  text-align: center;
+  text-decoration: none;
+}
+
+.domain-toggle button + button,
+.domain-toggle button + a,
+.domain-toggle a + a {
   border-left: 1px solid #ddd;
+}
+
+.domain-toggle a:hover {
+  background: #fff3ea;
 }
 
 .domain-toggle button.active {
