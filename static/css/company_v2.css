@@ -131,8 +131,18 @@ html, body {
   border-left: 1px solid #ddd;
 }
 
+/* 버튼마다 주황 계열 색을 조금씩 다르게: 평소에는 글자색, 선택하면 배경색으로 나타난다 */
+.domain-toggle button[data-domain="company"] { --tone: #ff8a3d; }
+.domain-toggle button[data-domain="hotspot"] { --tone: #f0603a; }
+.domain-toggle button[data-gallery="food"] { --tone: #e69a1f; }
+.domain-toggle button[data-gallery="fun"] { --tone: #d9703a; }
+
+.domain-toggle button {
+  color: var(--tone, #666);
+}
+
 .domain-toggle button.active {
-  background: #ff8a3d;
+  background: var(--tone, #ff8a3d);
   color: #fff;
   font-weight: 600;
 }
@@ -669,7 +679,7 @@ body.sidebar-collapsed .sidebar {
   }
 }
 
-/* ===== 음식사진 / 사진모음: 지도 영역을 덮는 갤러리 ===== */
+/* ===== 음식사진 / 웃긴사진: 지도 영역을 덮는 갤러리 ===== */
 .gallery-area {
   position: absolute;
   inset: 0;

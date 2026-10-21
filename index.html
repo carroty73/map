@@ -7,7 +7,7 @@
   <link rel="icon" href="/static/img/logo-og.png">
   <link rel="apple-touch-icon" href="/static/img/logo-og-touch.png">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <link rel="stylesheet" href="/static/css/company_v2.css?v=12">
+  <link rel="stylesheet" href="/static/css/company_v2.css?v=13">
 </head>
 <body>
   <script>if (window.matchMedia("(max-width: 768px)").matches) document.body.classList.add("sidebar-collapsed");</script>
@@ -46,7 +46,7 @@
             <button type="button" class="active" data-domain="company">회사</button>
             <button type="button" data-domain="hotspot">핫플</button>
             <button type="button" data-gallery="food">음식사진</button>
-            <button type="button" data-gallery="fun">사진모음</button>
+            <button type="button" data-gallery="fun">웃긴사진</button>
           </div>
 
           <div class="sidebar__categories" data-domain="company">
@@ -190,7 +190,7 @@
         <button type="button">-</button>
       </div>
 
-      <!-- 음식사진/사진모음: 지도 대신 이 영역을 덮어서 보여 준다 (왼쪽 슬라이드는 그대로) -->
+      <!-- 음식사진/웃긴사진: 지도 대신 이 영역을 덮어서 보여 준다 (왼쪽 슬라이드는 그대로) -->
       <div id="gallery-area" class="gallery-area" hidden>
         <div class="gallery-area__head">
           <h2 id="gallery-title"></h2>
@@ -559,7 +559,7 @@
     const categoryGroups = document.querySelectorAll(".sidebar__categories");
     let activeDomain = document.querySelector("#search-domain-toggle button.active[data-domain]").getAttribute("data-domain");
 
-    // 음식사진/사진모음: 지도 대신 갤러리를 보여 준다. 왼쪽 슬라이드(토글 줄)는 그대로 남는다.
+    // 음식사진/웃긴사진: 지도 대신 갤러리를 보여 준다. 왼쪽 슬라이드(토글 줄)는 그대로 남는다.
     const galleryButtons = document.querySelectorAll("#search-domain-toggle button[data-gallery]");
     const galleryArea = document.getElementById("gallery-area");
     const galleryGrid = document.getElementById("gallery-grid");

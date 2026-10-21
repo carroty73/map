@@ -224,7 +224,7 @@ def company_page(name):
 # 이미지는 static/photos/<폴더>/ 에 파일만 넣으면 자동으로 목록에 나온다.
 PHOTO_GALLERIES = {
     "food": {"title": "음식사진", "folder": "food", "desc": "모임할 때 쓰는 음식 이미지"},
-    "fun": {"title": "사진모음", "folder": "fun", "desc": "채팅할 때 쓰는 웃긴 사진, 멋진 사진"},
+    "fun": {"title": "웃긴사진", "folder": "fun", "desc": "채팅할 때 쓰는 웃긴 사진, 멋진 사진"},
 }
 PHOTO_EXTS = {".jpg", ".jpeg", ".png", ".gif", ".webp"}
 
