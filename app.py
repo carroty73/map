@@ -66,6 +66,9 @@ CATEGORY_VISIBLE = {
         "쉴 거리": True,
         "숙소": True,
         "교통": True,
+        "산": True,
+        "바다": True,
+        "조선 왕릉": True,
         "기타": True,
     },
     "company": {

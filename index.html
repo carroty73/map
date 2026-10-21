@@ -41,10 +41,10 @@
       <!-- 탭 클릭하면 이 안의 패널이 (애니메이션 없이) 바로 바뀐다 -->
       <div class="sidebar__panels">
         <div id="panel-search" class="sidebar__panel active">
-          <!-- 맛집/회사 토글: 아래 카테고리 아이콘 세트만 바뀐다 (되돌리기 쉬움) -->
+          <!-- 핫플/회사 토글: 아래 카테고리 아이콘 세트만 바뀐다 (되돌리기 쉬움) -->
           <div class="domain-toggle" id="search-domain-toggle">
             <button type="button" class="active" data-domain="company">회사</button>
-            <button type="button" data-domain="hotspot">맛집</button>
+            <button type="button" data-domain="hotspot">핫플</button>
           </div>
 
           <div class="sidebar__categories" data-domain="company">
@@ -68,6 +68,9 @@
             <button type="button"><span class="icon"><img src="/static/ico/pack_2/02_learn.png" alt=""></span><span>알아갈 거리</span></button>
             <button type="button"><span class="icon"><img src="/static/ico/pack_2/06_rest.png" alt=""></span><span>쉴 거리</span></button>
             <button type="button"><span class="icon"><img src="/static/ico/pack_2/08_move.png" alt=""></span><span>교통</span></button>
+            <button type="button"><span class="icon"><img src="/static/ico/pack_2/10_mountain.png" alt=""></span><span>산</span></button>
+            <button type="button"><span class="icon"><img src="/static/ico/pack_2/11_sea.png" alt=""></span><span>바다</span></button>
+            <button type="button"><span class="icon"><img src="/static/ico/pack_2/12_royal_tomb.png" alt=""></span><span>조선 왕릉</span></button>
           </div>
 
           <div class="sidebar__section-title" id="place-list-title">장소 목록</div>
@@ -103,7 +106,7 @@
           <form class="register-form" id="register-form">
             <div class="domain-toggle" id="register-domain-toggle">
               <button type="button" class="active" data-domain="company">회사</button>
-              <button type="button" data-domain="hotspot">맛집</button>
+              <button type="button" data-domain="hotspot">핫플</button>
             </div>
 
             <div class="form-field">
@@ -325,7 +328,9 @@
     const hotspotIconFiles = {
       "볼 거리": "01_see.png", "알아갈 거리": "02_learn.png", "마실 거리": "03_drink.png",
       "먹을 거리": "04_eat.png", "즐길 거리": "05_play.png", "쉴 거리": "06_rest.png",
-      "숙소": "07_stay.png", "교통": "08_move.png", "기타": "09_other.png",
+      "숙소": "07_stay.png", "교통": "08_move.png",
+      "산": "10_mountain.png", "바다": "11_sea.png", "조선 왕릉": "12_royal_tomb.png",
+      "기타": "09_other.png",
     };
     const companyIconEmoji = {
       "서버SW": "🖥️", "펌웨어": "💾", "회로설계": "🔌", "PCB 아트웍/제작": "🖊️",
@@ -529,7 +534,7 @@
       updateRegisterTabCount();
     }
 
-    // 검색 패널 안의 맛집/회사 토글: 아래 카테고리 아이콘 세트 + 지도 위 마커를 함께 바꾼다.
+    // 검색 패널 안의 핫플/회사 토글: 아래 카테고리 아이콘 세트 + 지도 위 마커를 함께 바꾼다.
     const domainButtons = document.querySelectorAll("#search-domain-toggle button");
     const categoryGroups = document.querySelectorAll(".sidebar__categories");
     let activeDomain = document.querySelector("#search-domain-toggle button.active").getAttribute("data-domain");
