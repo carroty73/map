@@ -7,7 +7,7 @@
   <link rel="icon" href="/static/img/logo-og.png">
   <link rel="apple-touch-icon" href="/static/img/logo-og-touch.png">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <link rel="stylesheet" href="/static/css/company_v2.css?v=11">
+  <link rel="stylesheet" href="/static/css/company_v2.css?v=12">
 </head>
 <body>
   <script>if (window.matchMedia("(max-width: 768px)").matches) document.body.classList.add("sidebar-collapsed");</script>
@@ -662,6 +662,42 @@
       }).catch(function (e) { galleryStatus.textContent = e.message; });
     }
 
+    // 이름을 누르면 입력칸으로 바뀐다. Enter 또는 칸 밖을 누르면 저장, Esc는 취소.
+    function editPhotoName(p, nameEl) {
+      if (nameEl.querySelector("input")) return;
+      const input = document.createElement("input");
+      input.type = "text"; input.className = "gallery-card__name-input";
+      input.value = p.label; input.maxLength = 60;
+      nameEl.textContent = "";
+      nameEl.appendChild(input);
+      input.focus(); input.select();
+      let done = false;
+      function finish(save) {
+        if (done) return;
+        done = true;
+        const value = input.value.trim();
+        if (!save || !value || value === p.label) { nameEl.textContent = p.label; return; }
+        fetch("/api/photos/" + encodeURIComponent(currentKind) + "/" + encodeURIComponent(p.filename), {
+          method: "PATCH",
+          headers: { "X-Upload-Password": adminPassword, "Content-Type": "application/json" },
+          body: JSON.stringify({ name: value }),
+        }).then(function (r) {
+          return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || "이름을 바꾸지 못했습니다."); return j; });
+        }).then(function (j) {
+          galleryStatus.textContent = "'" + p.label + "' -> '" + j.label + "' 이름을 바꿨습니다.";
+          loadGallery(currentKind);
+        }).catch(function (e) {
+          galleryStatus.textContent = e.message;
+          nameEl.textContent = p.label;
+        });
+      }
+      input.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") { e.preventDefault(); finish(true); }
+        else if (e.key === "Escape") { finish(false); }
+      });
+      input.addEventListener("blur", function () { finish(true); });
+    }
+
     function loadGallery(kind) {
       fetch("/api/photos/" + encodeURIComponent(kind))
         .then(function (r) { return r.json(); })
@@ -685,6 +721,11 @@
             img.src = p.url; img.alt = p.label; img.loading = "lazy";
             const name = document.createElement("div");
             name.className = "gallery-card__name"; name.textContent = p.label;
+            if (isAdmin) {
+              name.classList.add("is-editable");
+              name.title = "눌러서 이름 바꾸기";
+              name.addEventListener("click", function () { editPhotoName(p, name); });
+            }
             const dl = document.createElement("a");
             dl.className = "gallery-card__dl"; dl.href = p.url; dl.setAttribute("download", p.filename);
             dl.textContent = "내려받기";

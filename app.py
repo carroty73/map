@@ -336,6 +336,33 @@ def api_photos_upload(kind):
     return jsonify({"saved": saved, "errors": errors})
 
 
+@app.route("/api/photos/<kind>/<filename>", methods=["PATCH"])
+def api_photos_rename(kind, filename):
+    if kind not in PHOTO_GALLERIES:
+        abort(404)
+    denied = check_upload_password()
+    if denied:
+        return denied
+    ext = os.path.splitext(filename)[1].lower()
+    if filename != os.path.basename(filename) or ext not in PHOTO_EXTS:
+        abort(400)
+    folder = photo_dir(kind)
+    src = os.path.join(folder, filename)
+    if not os.path.isfile(src):
+        abort(404)
+    raw = ((request.get_json(silent=True) or {}).get("name") or "").strip()
+    if not raw:
+        return jsonify({"error": "이름을 입력해 주세요."}), 400
+    new_name = clean_photo_stem(raw) + ext  # 확장자는 그대로 둔다
+    if new_name == filename:
+        return jsonify({"filename": filename, "label": os.path.splitext(filename)[0]})
+    dst = os.path.join(folder, new_name)
+    if os.path.exists(dst):
+        return jsonify({"error": "같은 이름의 사진이 이미 있습니다."}), 409
+    os.rename(src, dst)
+    return jsonify({"filename": new_name, "label": os.path.splitext(new_name)[0]})
+
+
 @app.route("/api/photos/<kind>/<filename>", methods=["DELETE"])
 def api_photos_delete(kind, filename):
     if kind not in PHOTO_GALLERIES:

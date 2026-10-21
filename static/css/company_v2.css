@@ -807,3 +807,22 @@ body.sidebar-collapsed .sidebar {
   font-size: 12px;
   cursor: pointer;
 }
+
+.gallery-card__name.is-editable {
+  cursor: text;
+  border-bottom: 1px dashed transparent;
+}
+
+.gallery-card__name.is-editable:hover {
+  color: #ff8a3d;
+  border-bottom-color: #ff8a3d;
+}
+
+.gallery-card__name-input {
+  width: 100%;
+  padding: 3px 6px;
+  border: 1px solid #ff8a3d;
+  border-radius: 4px;
+  font: inherit;
+  font-weight: 600;
+}
