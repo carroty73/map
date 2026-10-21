@@ -748,3 +748,62 @@ body.sidebar-collapsed .sidebar {
   font-size: 14px;
   line-height: 1.6;
 }
+
+.gallery-area__head {
+  position: relative;
+}
+
+.gallery-admin-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 6px 12px;
+  border: 1px solid #ddd;
+  border-radius: 16px;
+  background: #fff;
+  font-size: 12px;
+  color: #666;
+  cursor: pointer;
+}
+
+.gallery-upload {
+  margin-top: 14px;
+}
+
+.gallery-upload[hidden] {
+  display: none;
+}
+
+.gallery-upload__drop {
+  display: block;
+  padding: 22px 12px;
+  border: 2px dashed #ff8a3d;
+  border-radius: 10px;
+  background: #fff8f2;
+  text-align: center;
+  font-size: 13px;
+  color: #a85a00;
+  cursor: pointer;
+}
+
+.gallery-upload__drop.is-over {
+  background: #ffe9d6;
+}
+
+.gallery-upload__status {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #666;
+  min-height: 16px;
+}
+
+.gallery-card__del {
+  margin: 0 10px 10px;
+  padding: 6px 0;
+  border: 1px solid #e0b4b4;
+  border-radius: 6px;
+  background: #fff;
+  color: #c0392b;
+  font-size: 12px;
+  cursor: pointer;
+}

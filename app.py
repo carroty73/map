@@ -9,6 +9,7 @@ NOTION_COMPANY_DB_ID = os.environ.get("NOTION_COMPANY_DB_ID")
 KAKAO_API_KEY = os.environ.get("kAKAO_REST_KEY")
 MY_IPS = {ip.strip() for ip in os.environ.get("MY_IP", "").split(",") if ip.strip()}
 NTFY_TOPIC = os.environ.get("NTFY_TOPIC", "")
+UPLOAD_PASSWORD = os.environ.get("UPLOAD_PASSWORD", "")
 
 from flask import (
     Flask,
@@ -20,13 +21,16 @@ from flask import (
     abort,
     redirect,
 )
+import hmac
 import json
 import re
+import time
 import requests
 from datetime import date, timedelta
 from urllib.parse import unquote
 
 app = Flask(__name__)
+app.config["MAX_CONTENT_LENGTH"] = 80 * 1024 * 1024  # 한 번에 올리는 사진 전체 크기 상한
 
 VIEW_COUNT_FILE = "view_count.json"
 MAP_CONFIG_FILE = "map_config.json"
@@ -253,6 +257,99 @@ def api_photos(kind):
         abort(404)
     gallery = PHOTO_GALLERIES[kind]
     return jsonify({"title": gallery["title"], "desc": gallery["desc"], "folder": gallery["folder"], "photos": photos})
+
+
+PHOTO_MAX_BYTES = 10 * 1024 * 1024  # 사진 한 장당 상한
+
+
+def photo_dir(kind):
+    return os.path.join(app.root_path, "static", "photos", PHOTO_GALLERIES[kind]["folder"])
+
+
+def check_upload_password():
+    """업로드/삭제 권한 확인. 통과하면 None, 아니면 (응답, 코드)를 돌려준다."""
+    if not UPLOAD_PASSWORD:
+        return jsonify({"error": "서버에 업로드 비밀번호(UPLOAD_PASSWORD)가 설정되어 있지 않습니다."}), 503
+    given = request.headers.get("X-Upload-Password", "")
+    if not hmac.compare_digest(given.encode("utf-8"), UPLOAD_PASSWORD.encode("utf-8")):
+        time.sleep(0.7)  # 비밀번호 대입 공격을 늦춘다
+        return jsonify({"error": "비밀번호가 맞지 않습니다."}), 401
+    return None
+
+
+def sniff_image_ext(head):
+    """파일 앞부분으로 진짜 이미지인지 확인하고 확장자를 돌려준다(아니면 None)."""
+    if head.startswith(b"\xff\xd8\xff"):
+        return ".jpg"
+    if head.startswith(b"\x89PNG\r\n\x1a\n"):
+        return ".png"
+    if head.startswith(b"GIF87a") or head.startswith(b"GIF89a"):
+        return ".gif"
+    if head[:4] == b"RIFF" and head[8:12] == b"WEBP":
+        return ".webp"
+    return None
+
+
+def clean_photo_stem(filename):
+    stem = os.path.splitext(os.path.basename(filename or ""))[0]
+    stem = re.sub(r"[^\w\-. ()]", "_", stem, flags=re.UNICODE).strip(" .")
+    return (stem or "photo")[:60]
+
+
+@app.route("/api/photos/auth", methods=["POST"])
+def api_photos_auth():
+    denied = check_upload_password()
+    if denied:
+        return denied
+    return jsonify({"ok": True})
+
+
+@app.route("/api/photos/<kind>/upload", methods=["POST"])
+def api_photos_upload(kind):
+    if kind not in PHOTO_GALLERIES:
+        abort(404)
+    denied = check_upload_password()
+    if denied:
+        return denied
+    folder = photo_dir(kind)
+    os.makedirs(folder, exist_ok=True)
+    saved, errors = [], []
+    for f in request.files.getlist("files"):
+        head = f.stream.read(16)
+        f.stream.seek(0)
+        ext = sniff_image_ext(head)
+        if not ext:
+            errors.append(f"{f.filename}: 이미지 파일(jpg, png, gif, webp)이 아닙니다.")
+            continue
+        data = f.stream.read(PHOTO_MAX_BYTES + 1)
+        if len(data) > PHOTO_MAX_BYTES:
+            errors.append(f"{f.filename}: 10MB를 넘습니다.")
+            continue
+        stem = clean_photo_stem(f.filename)
+        name, n = stem + ext, 1
+        while os.path.exists(os.path.join(folder, name)):
+            n += 1
+            name = f"{stem}-{n}{ext}"
+        with open(os.path.join(folder, name), "wb") as out:
+            out.write(data)
+        saved.append(name)
+    return jsonify({"saved": saved, "errors": errors})
+
+
+@app.route("/api/photos/<kind>/<filename>", methods=["DELETE"])
+def api_photos_delete(kind, filename):
+    if kind not in PHOTO_GALLERIES:
+        abort(404)
+    denied = check_upload_password()
+    if denied:
+        return denied
+    if filename != os.path.basename(filename) or os.path.splitext(filename)[1].lower() not in PHOTO_EXTS:
+        abort(400)
+    path = os.path.join(photo_dir(kind), filename)
+    if not os.path.isfile(path):
+        abort(404)
+    os.remove(path)
+    return jsonify({"deleted": filename})
 
 
 @app.route("/photos/<kind>")

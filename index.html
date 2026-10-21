@@ -7,7 +7,7 @@
   <link rel="icon" href="/static/img/logo-og.png">
   <link rel="apple-touch-icon" href="/static/img/logo-og-touch.png">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <link rel="stylesheet" href="/static/css/company_v2.css?v=10">
+  <link rel="stylesheet" href="/static/css/company_v2.css?v=11">
 </head>
 <body>
   <script>if (window.matchMedia("(max-width: 768px)").matches) document.body.classList.add("sidebar-collapsed");</script>
@@ -195,6 +195,14 @@
         <div class="gallery-area__head">
           <h2 id="gallery-title"></h2>
           <p id="gallery-desc"></p>
+          <button type="button" id="gallery-admin-btn" class="gallery-admin-btn">🔒 관리</button>
+        </div>
+        <div id="gallery-upload" class="gallery-upload" hidden>
+          <label class="gallery-upload__drop" id="gallery-drop">
+            사진을 여기에 끌어다 놓거나 눌러서 고르세요 (여러 장 가능, 한 장당 10MB까지)
+            <input type="file" id="gallery-file" accept="image/jpeg,image/png,image/gif,image/webp" multiple hidden>
+          </label>
+          <div id="gallery-status" class="gallery-upload__status"></div>
         </div>
         <div id="gallery-grid" class="gallery-grid"></div>
       </div>
@@ -563,24 +571,110 @@
       sidebarListEls.forEach(function (el) { el.hidden = false; });
     }
 
-    function showGallery(kind) {
-      domainButtons.forEach(function (b) { b.classList.remove("active"); });
-      galleryButtons.forEach(function (b) {
-        b.classList.toggle("active", b.getAttribute("data-gallery") === kind);
+    // 관리(업로드/삭제): 비밀번호를 한 번 입력하면 이 브라우저에 기억한다.
+    const adminBtn = document.getElementById("gallery-admin-btn");
+    const uploadBox = document.getElementById("gallery-upload");
+    const galleryStatus = document.getElementById("gallery-status");
+    let currentKind = null;
+    let adminPassword = "";
+    try { adminPassword = localStorage.getItem("photoAdminPw") || ""; } catch (e) {}
+    let isAdmin = false;
+
+    function setAdmin(on) {
+      isAdmin = on;
+      uploadBox.hidden = !on;
+      adminBtn.textContent = on ? "🔓 관리 끄기" : "🔒 관리";
+      if (currentKind) loadGallery(currentKind);
+    }
+
+    function checkAdmin(pw) {
+      return fetch("/api/photos/auth", { method: "POST", headers: { "X-Upload-Password": pw } })
+        .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, error: j.error }; }); });
+    }
+
+    adminBtn.addEventListener("click", function () {
+      if (isAdmin) {
+        adminPassword = "";
+        try { localStorage.removeItem("photoAdminPw"); } catch (e) {}
+        setAdmin(false);
+        return;
+      }
+      const pw = window.prompt("관리 비밀번호를 입력하세요");
+      if (!pw) return;
+      checkAdmin(pw).then(function (res) {
+        if (!res.ok) { window.alert(res.error || "비밀번호가 맞지 않습니다."); return; }
+        adminPassword = pw;
+        try { localStorage.setItem("photoAdminPw", pw); } catch (e) {}
+        setAdmin(true);
       });
-      categoryGroups.forEach(function (group) { group.hidden = true; });
-      sidebarListEls.forEach(function (el) { el.hidden = true; });
-      galleryArea.hidden = false;
-      galleryGrid.innerHTML = "";
+    });
+
+    if (adminPassword) {
+      checkAdmin(adminPassword).then(function (res) {
+        if (res.ok) { isAdmin = true; uploadBox.hidden = false; adminBtn.textContent = "🔓 관리 끄기"; }
+        else { adminPassword = ""; try { localStorage.removeItem("photoAdminPw"); } catch (e) {} }
+      }).catch(function () {});
+    }
+
+    function uploadFiles(files) {
+      if (!currentKind || !files.length) return;
+      const fd = new FormData();
+      Array.prototype.forEach.call(files, function (f) { fd.append("files", f); });
+      galleryStatus.textContent = files.length + "장 올리는 중...";
+      fetch("/api/photos/" + encodeURIComponent(currentKind) + "/upload", {
+        method: "POST", headers: { "X-Upload-Password": adminPassword }, body: fd,
+      }).then(function (r) {
+        if (r.status === 413) throw new Error("한 번에 올리는 크기가 너무 큽니다. 나눠서 올려 주세요.");
+        return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || "업로드 실패"); return j; });
+      }).then(function (j) {
+        const msg = [j.saved.length + "장 올렸습니다."].concat(j.errors);
+        galleryStatus.textContent = msg.join(" ");
+        loadGallery(currentKind);
+      }).catch(function (e) { galleryStatus.textContent = e.message; });
+    }
+
+    const dropZone = document.getElementById("gallery-drop");
+    const fileInput = document.getElementById("gallery-file");
+    fileInput.addEventListener("change", function () { uploadFiles(fileInput.files); fileInput.value = ""; });
+    ["dragenter", "dragover"].forEach(function (ev) {
+      galleryArea.addEventListener(ev, function (e) {
+        if (!isAdmin) return;
+        e.preventDefault(); dropZone.classList.add("is-over");
+      });
+    });
+    ["dragleave", "drop"].forEach(function (ev) {
+      galleryArea.addEventListener(ev, function () { dropZone.classList.remove("is-over"); });
+    });
+    galleryArea.addEventListener("drop", function (e) {
+      if (!isAdmin) return;
+      e.preventDefault();
+      uploadFiles(e.dataTransfer.files);
+    });
+
+    function deletePhoto(p) {
+      if (!window.confirm("'" + p.label + "' 사진을 삭제할까요? 되돌릴 수 없습니다.")) return;
+      fetch("/api/photos/" + encodeURIComponent(currentKind) + "/" + encodeURIComponent(p.filename), {
+        method: "DELETE", headers: { "X-Upload-Password": adminPassword },
+      }).then(function (r) {
+        if (!r.ok) throw new Error("삭제하지 못했습니다.");
+        galleryStatus.textContent = "'" + p.label + "' 삭제했습니다.";
+        loadGallery(currentKind);
+      }).catch(function (e) { galleryStatus.textContent = e.message; });
+    }
+
+    function loadGallery(kind) {
       fetch("/api/photos/" + encodeURIComponent(kind))
         .then(function (r) { return r.json(); })
         .then(function (data) {
           document.getElementById("gallery-title").textContent = data.title;
           document.getElementById("gallery-desc").textContent = data.desc + " - 내려받기 버튼을 누르세요.";
+          galleryGrid.innerHTML = "";
           if (!data.photos.length) {
             const empty = document.createElement("div");
             empty.className = "gallery-empty";
-            empty.textContent = "아직 사진이 없습니다. 서버의 static/photos/" + data.folder + "/ 폴더에 이미지를 넣으면 나타납니다.";
+            empty.textContent = isAdmin
+              ? "아직 사진이 없습니다. 위에서 사진을 올려 보세요."
+              : "아직 사진이 없습니다.";
             galleryGrid.appendChild(empty);
             return;
           }
@@ -595,12 +689,32 @@
             dl.className = "gallery-card__dl"; dl.href = p.url; dl.setAttribute("download", p.filename);
             dl.textContent = "내려받기";
             card.appendChild(img); card.appendChild(name); card.appendChild(dl);
+            if (isAdmin) {
+              const del = document.createElement("button");
+              del.type = "button"; del.className = "gallery-card__del"; del.textContent = "삭제";
+              del.addEventListener("click", function () { deletePhoto(p); });
+              card.appendChild(del);
+            }
             galleryGrid.appendChild(card);
           });
         })
         .catch(function () {
           galleryGrid.innerHTML = '<div class="gallery-empty">사진 목록을 불러오지 못했습니다.</div>';
         });
+    }
+
+    function showGallery(kind) {
+      currentKind = kind;
+      galleryStatus.textContent = "";
+      domainButtons.forEach(function (b) { b.classList.remove("active"); });
+      galleryButtons.forEach(function (b) {
+        b.classList.toggle("active", b.getAttribute("data-gallery") === kind);
+      });
+      categoryGroups.forEach(function (group) { group.hidden = true; });
+      sidebarListEls.forEach(function (el) { el.hidden = true; });
+      galleryArea.hidden = false;
+      galleryGrid.innerHTML = "";
+      loadGallery(kind);
     }
 
     galleryButtons.forEach(function (btn) {
