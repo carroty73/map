@@ -7,7 +7,7 @@
   <link rel="icon" href="/static/img/logo-og.png">
   <link rel="apple-touch-icon" href="/static/img/logo-og-touch.png">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <link rel="stylesheet" href="/static/css/company_v2.css?v=22">
+  <link rel="stylesheet" href="/static/css/company_v2.css?v=23">
 </head>
 <body>
   <script>if (window.matchMedia("(max-width: 768px)").matches) document.body.classList.add("sidebar-collapsed");</script>
@@ -473,7 +473,8 @@
             '<span class="sidebar__list-item-name">' + escapeHtml(item.name) + "</span>" +
             favStarHtml(item.id) +
           "</div>" +
-          '<span class="sidebar__list-item-addr">' + (dup ? '<b class="sidebar__list-item-dup">같은 이름</b> ' : "") +
+          '<span class="sidebar__list-item-addr">' + '<b class="sidebar__list-item-domain sidebar__list-item-domain--' + item.domain + '">' + (item.domain === "company" ? "회사" : "핫플") + "</b> " +
+            (dup ? '<b class="sidebar__list-item-dup">같은 이름</b> ' : "") +
             escapeHtml(item.category) + " · " + escapeHtml(item.address) + "</span>" +
           (item.url ? '<a class="sidebar__list-item-link" href="' + escapeHtml(item.url) +
             '" target="_blank" rel="noopener">자세히 보기</a>' : "");
@@ -777,20 +778,24 @@
       });
     });
 
+    // 영역(회사/핫플) 전환. 검색 결과에서 다른 영역의 장소를 고를 때도 쓴다(keepSearch=true면 검색 목록을 지우지 않는다).
+    function setDomain(domain, keepSearch) {
+      leaveGallery();
+      history.replaceState(null, "", location.pathname + location.search);
+      domainButtons.forEach(function (b) {
+        b.classList.toggle("active", b.getAttribute("data-domain") === domain);
+      });
+      activeDomain = domain;
+      categoryGroups.forEach(function (group) {
+        group.hidden = group.getAttribute("data-domain") !== domain;
+      });
+      applyDomainVisibility(domain);
+      if (!keepSearch) clearSearchResults();
+    }
+
     domainButtons.forEach(function (btn) {
       btn.addEventListener("click", function () {
-        leaveGallery();
-        history.replaceState(null, "", location.pathname + location.search);
-        domainButtons.forEach(function (b) { b.classList.remove("active"); });
-        btn.classList.add("active");
-
-        const domain = btn.getAttribute("data-domain");
-        activeDomain = domain;
-        categoryGroups.forEach(function (group) {
-          group.hidden = group.getAttribute("data-domain") !== domain;
-        });
-        applyDomainVisibility(domain);
-        clearSearchResults();
+        setDomain(btn.getAttribute("data-domain"), false);
       });
     });
 
@@ -866,15 +871,21 @@
       return String(s || "").toLowerCase().replace(/\s+/g, "").trim();
     }
 
-    function findPlaces(query, domain) {
+    // 회사와 핫플을 함께 찾는다. 현재 선택한 영역의 결과를 앞에 둔다.
+    function findPlaces(query) {
       const q = normalize(query);
       if (!q) return [];
-      const pool = placeIndex.filter(function (p) { return p.domain === domain; });
+      const pool = placeIndex;
+      function byActiveFirst(list) {
+        return list.slice().sort(function (a, b) {
+          return (b.domain === activeDomain) - (a.domain === activeDomain);
+        });
+      }
       const exact = pool.filter(function (p) { return normalize(p.name) === q; });
-      if (exact.length) return exact;
+      if (exact.length) return byActiveFirst(exact);
       const byName = pool.filter(function (p) { return normalize(p.name).indexOf(q) !== -1; });
-      if (byName.length) return byName;
-      return pool.filter(function (p) { return normalize(p.address).indexOf(q) !== -1; });
+      if (byName.length) return byActiveFirst(byName);
+      return byActiveFirst(pool.filter(function (p) { return normalize(p.address).indexOf(q) !== -1; }));
     }
 
     function blinkMarker(marker) {
@@ -886,6 +897,7 @@
     }
 
     function goToPlace(item) {
+      if (item.domain !== activeDomain) setDomain(item.domain, true);
       if (item.group && !map.hasLayer(item.group)) map.addLayer(item.group);
       const btn = categoryButtonMap[item.domain] && categoryButtonMap[item.domain][item.category];
       if (btn) btn.classList.remove("is-off");
@@ -958,7 +970,8 @@
             '<span class="sidebar__list-item-name">' + escapeHtml(item.name) + "</span>" +
             favStarHtml(item.id) +
           "</div>" +
-          '<span class="sidebar__list-item-addr">' + (dup ? '<b class="sidebar__list-item-dup">같은 이름</b> ' : "") +
+          '<span class="sidebar__list-item-addr">' + '<b class="sidebar__list-item-domain sidebar__list-item-domain--' + item.domain + '">' + (item.domain === "company" ? "회사" : "핫플") + "</b> " +
+            (dup ? '<b class="sidebar__list-item-dup">같은 이름</b> ' : "") +
             escapeHtml(item.category) + " · " + escapeHtml(item.address) + "</span>" +
           (item.url ? '<a class="sidebar__list-item-link" href="' + escapeHtml(item.url) +
             '" target="_blank" rel="noopener">자세히 보기</a>' : "");
@@ -975,7 +988,7 @@
       const q = searchInput.value.trim();
       clearAddressPin();
       if (!q) { clearSearchResults(); return; }
-      renderSearchResults(findPlaces(q, activeDomain));
+      renderSearchResults(findPlaces(q));
     });
 
     searchInput.addEventListener("keydown", function (e) {
@@ -983,7 +996,7 @@
         e.preventDefault();
         const q = searchInput.value.trim();
         if (!q) return;
-        const found = findPlaces(q, activeDomain);
+        const found = findPlaces(q);
         if (found.length > 1 && found.every(function (f) { return normalize(f.name) === normalize(found[0].name); })) {
           // 이름이 같은 곳이 여러 개: 임의로 첫 번째로 가지 않고 목록에서 고르게 한다.
           renderSearchResults(found);

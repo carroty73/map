@@ -291,6 +291,24 @@ html, body {
   color: #333;
 }
 
+.sidebar__list-item-domain {
+  display: inline-block;
+  padding: 0 6px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.sidebar__list-item-domain--company {
+  background: #cde7f1;
+  color: #337ea9;
+}
+
+.sidebar__list-item-domain--hotspot {
+  background: #f9d3d5;
+  color: #d44c47;
+}
+
 .sidebar__list-item-dup {
   display: inline-block;
   padding: 0 6px;
