@@ -69,6 +69,7 @@ CATEGORY_VISIBLE = {
         "산": True,
         "바다": True,
         "조선 왕릉": True,
+        "역사 인물 묘": True,
         "기타": True,
     },
     "company": {
