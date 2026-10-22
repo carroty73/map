@@ -1,0 +1,31 @@
+{
+  "id": "/",
+  "name": "carrotymap",
+  "short_name": "carrotymap",
+  "description": "나만의 장소와 유용한 위치 정보를 기록하고 공유하는 지도 플랫폼",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ff8a3d",
+  "theme_color": "#ff8a3d",
+  "icons": [
+    {
+      "src": "/static/img/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/static/img/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/static/img/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
