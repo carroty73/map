@@ -405,6 +405,9 @@
     } catch (err) {
       favorites = [];
     }
+    // 저장된 값이 배열이 아니거나 항목이 이상해도 화면이 멈추지 않게 걸러 낸다.
+    if (!Array.isArray(favorites)) favorites = [];
+    favorites = favorites.filter(function (f) { return f && typeof f === "object" && f.id; });
 
     function makePlaceId(p) {
       return p.domain + "|" + p.name + "|" + p.address;
@@ -474,7 +477,6 @@
             favStarHtml(item.id) +
           "</div>" +
           '<span class="sidebar__list-item-addr">' + '<b class="sidebar__list-item-domain sidebar__list-item-domain--' + item.domain + '">' + (item.domain === "company" ? "회사" : "핫플") + "</b> " +
-            (dup ? '<b class="sidebar__list-item-dup">같은 이름</b> ' : "") +
             escapeHtml(item.category) + " · " + escapeHtml(item.address) + "</span>" +
           (item.url ? '<a class="sidebar__list-item-link" href="' + escapeHtml(item.url) +
             '" target="_blank" rel="noopener">자세히 보기</a>' : "");
@@ -1165,7 +1167,8 @@
       .catch(function (err) { console.warn("조회수를 불러오지 못했습니다.", err); });
 
     initMap();
-    renderFavoritesPanel();
+    // 즐겨찾기 그리기에서 오류가 나도 아래의 햄버거 버튼 연결까지 멈추지 않게 한다.
+    try { renderFavoritesPanel(); } catch (err) { console.warn("즐겨찾기를 그리지 못했습니다.", err); }
 
     // 사이드바 열기/닫기 (book 페이지와 동일): 햄버거 버튼으로 토글, 모바일에서는 어두운 배경을 누르면 닫힌다.
     const sidebarToggle = document.getElementById("sidebar-toggle");
