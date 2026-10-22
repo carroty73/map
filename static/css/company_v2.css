@@ -11,112 +11,9 @@ html, body {
   font-family: "Pretendard", -apple-system, sans-serif;
 }
 
-:root {
-  --topbar-h: 48px;
-  --adbar-h: 90px; /* 광고 칸 높이: 일단 고정, 나중에 광고에 맞춰 수정 */
-  --bars-h: calc(var(--topbar-h) + var(--adbar-h));
-}
-
-/* 맨 위 바(햄버거, 지도 아이콘) + 광고 칸 + 아래 영역(사이드바, 지도)을 위에서 아래로 나눠 쓴다 */
-.topbar {
-  position: relative;
-  z-index: 60; /* 지도 아이콘 펼침 목록이 광고 칸 위로 내려오도록 */
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  height: var(--topbar-h);
-  padding: 0 10px;
-  background: #ff8a3d;
-}
-
-.topbar .sidebar__logo,
-.topbar .view-count {
-  flex: none;
-}
-
-.topbar__search {
-  position: relative;
-  flex: 1;
-  min-width: 0;
-}
-
-.topbar__search-icon {
-  position: absolute;
-  left: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  pointer-events: none;
-}
-
-.topbar__search input {
-  width: 100%;
-  height: 34px;
-  padding: 0 12px 0 36px;
-  border: none;
-  border-radius: 10px;
-  font-size: 14px;
-  background: #fff;
-  color: #333;
-}
-
-.topbar__search input:focus {
-  outline: 2px solid rgba(255, 255, 255, 0.6);
-  outline-offset: 1px;
-}
-
-.topbar__layers {
-  position: relative;
-  width: 36px;
-  height: 36px;
-}
-
-.topbar__layers .leaflet-control {
-  position: absolute;
-  top: 0;
-  right: 0;
-  z-index: 1000;
-}
-
-/* 펼친 목록이 36px 폭에 갇혀 글자가 세로로 쌓이지 않게 글자 폭만큼 넓히고, 길면 스크롤한다 */
-.topbar__layers .leaflet-control-layers-expanded {
-  width: max-content;
-  max-width: calc(100vw - 16px);
-  white-space: nowrap;
-}
-
-.topbar__layers .leaflet-control-layers-list {
-  max-height: calc(100vh - var(--topbar-h) - 24px);
-  max-height: calc(100dvh - var(--topbar-h) - 24px);
-  overflow-y: auto;
-}
-
-.adbar {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: var(--adbar-h);
-  background: #f3f3f3;
-  border-bottom: 1px solid #e5e5e5;
-}
-
-.adbar .map-ad-banner {
-  position: relative;
-  height: 100%;
-}
-
 .layout {
   display: flex;
-  height: calc(100vh - var(--topbar-h));
-  height: calc(100dvh - var(--topbar-h));
-}
-
-/* 오른쪽 열: 광고 칸 아래에 지도 (PC에서 광고는 사이드바 오른쪽 지도 위에만 놓인다) */
-.main-col {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
+  height: 100vh;
 }
 
 /* 좌측 사이드바 */
@@ -131,6 +28,14 @@ html, body {
   transition: width 0.2s ease, min-width 0.2s ease;
 }
 
+.sidebar__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 16px;
+  background: #ff8a3d;
+}
 
 .view-count {
   display: flex;
@@ -152,7 +57,21 @@ html, body {
   cursor: pointer;
 }
 
+.sidebar__search {
+  padding: 0 16px 12px;
+  background: #ff8a3d;
+}
 
+.sidebar__search input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  background: #fff;
+  color: #333;
+  opacity: 1;
+}
 
 
 .sidebar__tabs {
@@ -621,12 +540,15 @@ html, body {
 
 /* 사이드바 열기/닫기: book 페이지와 같은 햄버거 버튼(☰). 닫으면 폭이 0이 되고 지도가 전체 폭을 쓴다 */
 .sidebar-toggle {
-  flex: none;
+  position: fixed;
+  top: 14px;
+  left: 14px;
+  z-index: 50;
   width: 38px;
   height: 38px;
   border-radius: 6px;
   border: none;
-  background: transparent;
+  background: transparent; /* 투명: 열렸을 때는 주황 헤더, 닫혔을 때는 지도가 비쳐 보인다 */
   color: #fff;
   cursor: pointer;
   font-size: 22px;
@@ -635,6 +557,15 @@ html, body {
 
 .sidebar-toggle:hover {
   background: rgba(255, 255, 255, 0.2);
+}
+
+/* 닫히면 흰색 글자가 밝은 지도에 묻히므로 짙은 색으로 바꾼다 */
+body.sidebar-collapsed .sidebar-toggle {
+  color: #333;
+}
+
+body.sidebar-collapsed .sidebar-toggle:hover {
+  background: rgba(0, 0, 0, 0.1);
 }
 
 .sidebar-backdrop {
@@ -648,11 +579,16 @@ body.sidebar-collapsed .sidebar {
   border-right: none;
 }
 
+/* 햄버거 버튼이 로고 위에 겹치지 않게 헤더 왼쪽을 비운다 */
+.sidebar__header {
+  padding-left: 62px;
+}
+
 /* 우측 지도 영역 (지금은 자리만 차지하는 자리표시자) */
 .map-area {
   position: relative;
   flex: 1;
-  min-height: 0;
+  height: 100%;
   background: #eef1f2;
 }
 
@@ -662,42 +598,23 @@ body.sidebar-collapsed .sidebar {
   z-index: 0; /* Leaflet 내부 컨트롤(z-index:1000 등)이 이 안에서만 쌓이도록 별도 stacking context를 만든다 */
 }
 
-/* 검색 결과: 광고 아래, 지도 위쪽에 펼쳐진다 */
-.search-results {
+/* 지도 위 광고 배너 (3초 간격 자동 전환) */
+.map-ad-banner {
   position: absolute;
-  top: 12px;
-  left: 12px;
-  z-index: 40;
-  width: 380px;
-  max-width: calc(100% - 24px);
-  max-height: calc(100% - 24px);
-  overflow-y: auto;
-  background: #fff;
-  border: 1px solid #ddd;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  width: min(480px, 70%);
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-.search-results[hidden],
-.search-results:has(> #place-list[hidden]) {
-  display: none; /* 갤러리를 볼 때는 목록도 숨긴다 */
-}
-
-.search-results .sidebar__section-title {
-  margin-top: 0;
-  border-top: none;
-}
-
-.search-results .sidebar__list {
-  max-height: none;
-  overflow: visible;
-}
-
-/* 광고 칸 안의 배너 (3초 간격 자동 전환). 높이는 .adbar가 정하고 그림은 그 안에 맞춘다 */
 .map-ad-banner__tag {
   position: absolute;
-  top: 4px;
-  left: 4px;
+  top: 6px;
+  left: 6px;
   font-size: 11px;
   color: #fff;
   background: rgba(0, 0, 0, 0.45);
@@ -708,10 +625,8 @@ body.sidebar-collapsed .sidebar {
 
 .map-ad-banner__img {
   display: block;
-  height: 100%;
-  width: auto;
-  max-width: 100%;
-  object-fit: contain;
+  width: 100%;
+  height: auto;
   transition: opacity 0.3s ease;
 }
 
@@ -760,11 +675,11 @@ body.sidebar-collapsed .sidebar {
   /* 사이드바는 화면 왼쪽에서 밀려 나오는 서랍(book과 동일). 지도는 항상 전체 화면 */
   .sidebar {
     position: fixed;
-    top: var(--bars-h);
+    top: 0;
     left: 0;
     width: min(360px, 86vw);
     min-width: 0;
-    height: calc(100% - var(--bars-h));
+    height: 100%;
     z-index: 45;
     transform: translateX(0);
     transition: transform 0.2s ease;
@@ -779,30 +694,14 @@ body.sidebar-collapsed .sidebar {
   body:not(.sidebar-collapsed) .sidebar-backdrop {
     display: block;
     position: fixed;
-    inset: var(--bars-h) 0 0 0;
+    inset: 0;
     background: rgba(0, 0, 0, 0.45);
     z-index: 40;
   }
 
-  :root {
-    --adbar-h: 50px;
-  }
-
-  /* 폭이 좁아서 로고와 방문자 수는 숨기고 검색창에 폭을 준다 */
-  .topbar .sidebar__logo,
-  .topbar .view-count {
-    display: none;
-  }
-
-  .search-results {
-    left: 8px;
-    right: 8px;
-    width: auto;
-    max-width: none;
-  }
-
   .map-area {
     width: 100%;
+    min-height: 100vh;
   }
 }
 
