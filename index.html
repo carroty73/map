@@ -9,7 +9,7 @@
   <link rel="manifest" href="/static/manifest.webmanifest">
   <meta name="theme-color" content="#ff8a3d">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <link rel="stylesheet" href="/static/css/company_v2.css?v=24">
+  <link rel="stylesheet" href="/static/css/company_v2.css?v=25">
 </head>
 <body>
   <script>if (window.matchMedia("(max-width: 768px)").matches) document.body.classList.add("sidebar-collapsed");</script>
@@ -713,12 +713,28 @@
       input.addEventListener("blur", function () { finish(true); });
     }
 
+    // 클립보드 복사: HTTPS가 아니거나 권한이 없으면 옛 방식(textarea)으로 한 번 더 시도한다
+    function copyText(text) {
+      if (navigator.clipboard && window.isSecureContext) {
+        return navigator.clipboard.writeText(text);
+      }
+      return new Promise(function (resolve, reject) {
+        const ta = document.createElement("textarea");
+        ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+        document.body.appendChild(ta); ta.select();
+        let ok = false;
+        try { ok = document.execCommand("copy"); } catch (e) {}
+        document.body.removeChild(ta);
+        ok ? resolve() : reject();
+      });
+    }
+
     function loadGallery(kind) {
       fetch("/api/photos/" + encodeURIComponent(kind))
         .then(function (r) { return r.json(); })
         .then(function (data) {
           document.getElementById("gallery-title").textContent = data.title;
-          document.getElementById("gallery-desc").textContent = data.desc + " - 내려받기 버튼을 누르세요.";
+          document.getElementById("gallery-desc").textContent = data.desc + " - 링크를 복사하거나 내려받으세요.";
           galleryGrid.innerHTML = "";
           if (!data.photos.length) {
             const empty = document.createElement("div");
@@ -748,7 +764,31 @@
             const dl = document.createElement("a");
             dl.className = "gallery-card__dl"; dl.href = p.url; dl.setAttribute("download", p.filename);
             dl.textContent = "내려받기";
-            card.appendChild(imgLink); card.appendChild(name); card.appendChild(dl);
+            const actions = document.createElement("div");
+            actions.className = "gallery-card__actions";
+            const fullUrl = new URL(p.url, location.href).href;
+            const copyBtn = document.createElement("button");
+            copyBtn.type = "button"; copyBtn.className = "gallery-card__copy"; copyBtn.textContent = "링크 복사";
+            copyBtn.addEventListener("click", function () {
+              copyText(fullUrl).then(function () {
+                copyBtn.textContent = "복사됨 ✓";
+              }, function () {
+                window.prompt("아래 주소를 복사하세요", fullUrl);
+              }).then(function () {
+                setTimeout(function () { copyBtn.textContent = "링크 복사"; }, 1500);
+              });
+            });
+            actions.appendChild(copyBtn);
+            if (navigator.share) {
+              const shareBtn = document.createElement("button");
+              shareBtn.type = "button"; shareBtn.className = "gallery-card__copy"; shareBtn.textContent = "공유";
+              shareBtn.addEventListener("click", function () {
+                navigator.share({ title: p.label, url: fullUrl }).catch(function () {});
+              });
+              actions.appendChild(shareBtn);
+            }
+            actions.appendChild(dl);
+            card.appendChild(imgLink); card.appendChild(name); card.appendChild(actions);
             if (isAdmin) {
               const del = document.createElement("button");
               del.type = "button"; del.className = "gallery-card__del"; del.textContent = "삭제";

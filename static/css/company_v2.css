@@ -768,8 +768,25 @@ body.sidebar-collapsed .sidebar {
   font-weight: 600;
 }
 
-.gallery-card__dl {
+.gallery-card__actions {
+  display: flex;
+  gap: 6px;
   margin: 8px 10px 10px;
+}
+
+.gallery-card__copy {
+  flex: 1;
+  padding: 7px 0;
+  border: 1px solid #ff8a3d;
+  border-radius: 6px;
+  background: #fff;
+  color: #ff8a3d;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.gallery-card__dl {
+  flex: 1;
   padding: 7px 0;
   text-align: center;
   border-radius: 6px;
@@ -885,7 +902,11 @@ body.sidebar-collapsed .sidebar {
     white-space: nowrap;
   }
 
-  .gallery-card__dl,
+  .gallery-card__actions {
+    margin-left: 8px;
+    margin-right: 8px;
+  }
+
   .gallery-card__del {
     margin-left: 8px;
     margin-right: 8px;
