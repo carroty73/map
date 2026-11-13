@@ -304,6 +304,31 @@ def remove_thumb(kind, filename):
         pass
 
 
+# 사진 태그: 폴더마다 .tags.json 한 파일에 {파일명: [태그, ...]}로 적는다.
+PHOTO_TAGS = ["명절", "경조사", "축하", "조의"]
+
+
+def tags_file(kind):
+    return os.path.join(photo_dir_for(kind), ".tags.json")
+
+
+def load_tags(kind):
+    try:
+        with open(tags_file(kind), encoding="utf-8") as f:
+            data = json.load(f)
+        return data if isinstance(data, dict) else {}
+    except (OSError, ValueError):
+        return {}
+
+
+def save_tags(kind, data):
+    path = tags_file(kind)
+    tmp = path + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=1)
+    os.replace(tmp, path)
+
+
 def natural_key(name):
     return [int(t) if t.isdigit() else t.lower() for t in re.split(r"(\d+)", name)]
 
@@ -321,12 +346,14 @@ def list_photos(kind):
              if os.path.splitext(n)[1].lower() in PHOTO_EXTS),
             key=natural_key,
         )
+    tags = load_tags(kind)
     return [
         {
             "url": f"/static/photos/{gallery['folder']}/{n}",
             "thumb": f"/api/photos/{kind}/thumb/{n}",
             "label": os.path.splitext(n)[0],
             "filename": n,
+            "tags": [t for t in tags.get(n, []) if t in PHOTO_TAGS],
         }
         for n in names
     ]
@@ -338,7 +365,7 @@ def api_photos(kind):
     if photos is None:
         abort(404)
     gallery = PHOTO_GALLERIES[kind]
-    return jsonify({"title": gallery["title"], "desc": gallery["desc"], "folder": gallery["folder"], "photos": photos})
+    return jsonify({"title": gallery["title"], "desc": gallery["desc"], "folder": gallery["folder"], "photos": photos, "tags": PHOTO_TAGS})
 
 
 PHOTO_MAX_BYTES = 10 * 1024 * 1024  # 사진 한 장당 상한
@@ -457,6 +484,10 @@ def api_photos_rename(kind, filename):
         return jsonify({"error": "같은 이름의 사진이 이미 있습니다."}), 409
     os.rename(src, dst)
     remove_thumb(kind, filename)
+    tags = load_tags(kind)
+    if filename in tags:
+        tags[new_name] = tags.pop(filename)
+        save_tags(kind, tags)
     return jsonify({"filename": new_name, "label": os.path.splitext(new_name)[0]})
 
 
@@ -474,7 +505,34 @@ def api_photos_delete(kind, filename):
         abort(404)
     os.remove(path)
     remove_thumb(kind, filename)
+    tags = load_tags(kind)
+    if tags.pop(filename, None) is not None:
+        save_tags(kind, tags)
     return jsonify({"deleted": filename})
+
+
+@app.route("/api/photos/<kind>/<filename>/tags", methods=["PUT"])
+def api_photos_tags(kind, filename):
+    if kind not in PHOTO_GALLERIES:
+        abort(404)
+    denied = check_upload_password()
+    if denied:
+        return denied
+    if filename != os.path.basename(filename) or os.path.splitext(filename)[1].lower() not in PHOTO_EXTS:
+        abort(400)
+    if not os.path.isfile(os.path.join(photo_dir(kind), filename)):
+        abort(404)
+    wanted = (request.get_json(silent=True) or {}).get("tags")
+    if not isinstance(wanted, list):
+        return jsonify({"error": "tags는 목록이어야 합니다."}), 400
+    clean = [t for t in PHOTO_TAGS if t in wanted]  # 정해 둔 태그만, 정해 둔 순서로
+    tags = load_tags(kind)
+    if clean:
+        tags[filename] = clean
+    else:
+        tags.pop(filename, None)
+    save_tags(kind, tags)
+    return jsonify({"filename": filename, "tags": clean})
 
 
 @app.route("/photos/<kind>")

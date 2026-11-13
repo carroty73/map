@@ -9,7 +9,7 @@
   <link rel="manifest" href="/static/manifest.webmanifest">
   <meta name="theme-color" content="#ff8a3d">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <link rel="stylesheet" href="/static/css/company_v2.css?v=29">
+  <link rel="stylesheet" href="/static/css/company_v2.css?v=30">
 </head>
 <body>
   <script>if (window.matchMedia("(max-width: 768px)").matches) document.body.classList.add("sidebar-collapsed");</script>
@@ -214,6 +214,7 @@
           </label>
           <div id="gallery-status" class="gallery-upload__status"></div>
         </div>
+        <div id="gallery-tags" class="gallery-tags" hidden></div>
         <div id="gallery-grid" class="gallery-grid"></div>
       </div>
     </div>
@@ -751,6 +752,21 @@
       });
     }
 
+    // 태그 필터: "" = 전체(조의 태그가 붙은 사진은 숨김), 태그를 고르면 그 태그의 사진만 보임
+    let currentTag = "";
+    const galleryTagsEl = document.getElementById("gallery-tags");
+    const HIDDEN_BY_DEFAULT = "조의";
+
+    function putTags(p, tags) {
+      return fetch("/api/photos/" + encodeURIComponent(currentKind) + "/" + encodeURIComponent(p.filename) + "/tags", {
+        method: "PUT",
+        headers: { "X-Upload-Password": adminPassword, "Content-Type": "application/json" },
+        body: JSON.stringify({ tags: tags }),
+      }).then(function (r) {
+        return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || "태그를 저장하지 못했습니다."); return j; });
+      });
+    }
+
     function loadGallery(kind) {
       fetch("/api/photos/" + encodeURIComponent(kind))
         .then(function (r) { return r.json(); })
@@ -758,7 +774,31 @@
           document.getElementById("gallery-title").textContent = data.title;
           document.getElementById("gallery-desc").textContent = data.desc + " - 이미지를 복사하거나 내려받으세요.";
           galleryGrid.innerHTML = "";
-          if (!data.photos.length) {
+          const allTags = data.tags || [];
+          const used = {};
+          data.photos.forEach(function (p) { (p.tags || []).forEach(function (t) { used[t] = (used[t] || 0) + 1; }); });
+          // 태그 줄: 이 갤러리에 태그가 붙은 사진이 있거나 관리 중일 때만 보인다
+          galleryTagsEl.innerHTML = "";
+          const hasTags = Object.keys(used).length > 0;
+          galleryTagsEl.hidden = !(hasTags || isAdmin);
+          if (currentTag && !used[currentTag]) currentTag = "";
+          if (!galleryTagsEl.hidden) {
+            [""].concat(allTags).forEach(function (t) {
+              if (t && !used[t] && !isAdmin) return;
+              const b = document.createElement("button");
+              b.type = "button";
+              b.textContent = t ? t + (used[t] ? " " + used[t] : "") : "전체";
+              if (!t) b.title = "'" + HIDDEN_BY_DEFAULT + "' 태그가 붙은 사진은 여기서 숨겨져 있고 '" + HIDDEN_BY_DEFAULT + "'을 눌러야 보입니다";
+              if (t === currentTag) b.classList.add("active");
+              b.addEventListener("click", function () { currentTag = t; loadGallery(kind); });
+              galleryTagsEl.appendChild(b);
+            });
+          }
+          const photos = data.photos.filter(function (p) {
+            const tg = p.tags || [];
+            return currentTag ? tg.indexOf(currentTag) >= 0 : tg.indexOf(HIDDEN_BY_DEFAULT) < 0;
+          });
+          if (!photos.length) {
             const empty = document.createElement("div");
             empty.className = "gallery-empty";
             empty.textContent = isAdmin
@@ -767,7 +807,7 @@
             galleryGrid.appendChild(empty);
             return;
           }
-          data.photos.forEach(function (p) {
+          photos.forEach(function (p) {
             const card = document.createElement("div");
             card.className = "gallery-card";
             const img = document.createElement("img");
@@ -846,7 +886,30 @@
               actions.appendChild(shareBtn);
             }
             actions.appendChild(dl);
-            card.appendChild(imgLink); card.appendChild(name); card.appendChild(actions);
+            // 태그: 누구에게나 붙은 태그가 보이고, 관리 중이면 눌러서 켜고 끈다
+            const tagRow = document.createElement("div");
+            tagRow.className = "gallery-card__tags";
+            p.tags = p.tags || [];
+            allTags.forEach(function (t) {
+              if (!isAdmin && p.tags.indexOf(t) < 0) return;
+              const tb = document.createElement(isAdmin ? "button" : "span");
+              tb.textContent = t;
+              tb.className = "gallery-tag" + (p.tags.indexOf(t) >= 0 ? " on" : "");
+              if (isAdmin) {
+                tb.type = "button";
+                tb.addEventListener("click", function () {
+                  const next = p.tags.indexOf(t) >= 0 ? p.tags.filter(function (x) { return x !== t; }) : p.tags.concat([t]);
+                  putTags(p, next).then(function (j) {
+                    p.tags = j.tags;
+                    tb.classList.toggle("on", p.tags.indexOf(t) >= 0);
+                  }).catch(function (e) { galleryStatus.textContent = e.message; });
+                });
+              }
+              tagRow.appendChild(tb);
+            });
+            card.appendChild(imgLink); card.appendChild(name);
+            if (tagRow.children.length) card.appendChild(tagRow);
+            card.appendChild(actions);
             if (isAdmin) {
               const del = document.createElement("button");
               del.type = "button"; del.className = "gallery-card__del"; del.textContent = "삭제";
@@ -862,6 +925,7 @@
     }
 
     function showGallery(kind) {
+      if (currentKind !== kind) currentTag = "";
       currentKind = kind;
       lastPhotoKind = kind;
       photoTab.classList.add("active");

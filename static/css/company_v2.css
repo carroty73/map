@@ -931,3 +931,59 @@ body.sidebar-collapsed .sidebar {
     margin-right: 8px;
   }
 }
+
+/* 사진 태그 */
+.gallery-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 16px 10px;
+}
+
+.gallery-tags[hidden] {
+  display: none;
+}
+
+.gallery-tags button {
+  padding: 6px 12px;
+  border: 1px solid #ddd;
+  border-radius: 16px;
+  background: #fff;
+  font-size: 13px;
+  color: #555;
+  cursor: pointer;
+}
+
+.gallery-tags button.active {
+  background: #ff8a3d;
+  border-color: #ff8a3d;
+  color: #fff;
+  font-weight: 700;
+}
+
+.gallery-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 6px 10px 0;
+}
+
+.gallery-tag {
+  padding: 2px 8px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  background: #fff;
+  font-size: 11px;
+  color: #aaa;
+}
+
+button.gallery-tag {
+  cursor: pointer;
+}
+
+.gallery-tag.on {
+  background: #fdebd9;
+  border-color: #ff8a3d;
+  color: #d9650f;
+  font-weight: 700;
+}
