@@ -97,14 +97,16 @@ html, body {
   border-bottom: 4px solid #fff;
 }
 
-.sidebar__categories {
+.sidebar__categories,
+.photo-kinds {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 8px;
   padding: 16px 16px 28px;
 }
 
-.sidebar__categories[hidden] {
+.sidebar__categories[hidden],
+.photo-kinds[hidden] {
   display: none;
 }
 
@@ -135,6 +137,8 @@ html, body {
    평소에는 기본 색(흰 배경, 회색 글씨)이고, 선택하면 그 버튼의 색이 나타난다. */
 .domain-toggle button[data-domain="company"] { --bg-on: #cde7f1; --fg-on: #337ea9; }
 .domain-toggle button[data-domain="hotspot"] { --bg-on: #f9d3d5; --fg-on: #d44c47; }
+.domain-toggle[hidden] { display: none; }
+.domain-toggle button[data-photo-tab] { --bg-on: #cfe5cf; --fg-on: #448361; }
 .domain-toggle button[data-gallery="food"] { --bg-on: #f6e4a8; --fg-on: #b27d1c; }
 .domain-toggle button[data-gallery="fun"] { --bg-on: #cfe5cf; --fg-on: #448361; }
 .domain-toggle button[data-gallery="event"] { --bg-on: #f9d3d5; --fg-on: #d44c47; }
@@ -147,7 +151,8 @@ html, body {
   font-weight: 700;
 }
 
-.sidebar__categories button {
+.sidebar__categories button,
+.photo-kinds button {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -158,7 +163,8 @@ html, body {
   cursor: pointer;
 }
 
-.sidebar__categories .icon {
+.sidebar__categories .icon,
+.photo-kinds .icon {
   width: 36px;
   height: 36px;
   border-radius: 50%;
@@ -169,15 +175,27 @@ html, body {
   font-size: 18px;
 }
 
-.sidebar__categories .icon img {
+.sidebar__categories .icon img,
+.photo-kinds .icon img {
   width: 22px;
   height: 22px;
   object-fit: contain;
 }
 
-.sidebar__categories span {
+.sidebar__categories span,
+.photo-kinds span {
   font-size: 12px;
   color: #444;
+}
+
+.photo-kinds button.active .icon {
+  background: #cfe5cf;
+  box-shadow: 0 0 0 2px #448361;
+}
+
+.photo-kinds button.active span:last-child {
+  color: #448361;
+  font-weight: 700;
 }
 
 .sidebar__categories button.is-off .icon {

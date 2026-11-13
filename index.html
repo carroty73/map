@@ -9,7 +9,7 @@
   <link rel="manifest" href="/static/manifest.webmanifest">
   <meta name="theme-color" content="#ff8a3d">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <link rel="stylesheet" href="/static/css/company_v2.css?v=25">
+  <link rel="stylesheet" href="/static/css/company_v2.css?v=27">
 </head>
 <body>
   <script>if (window.matchMedia("(max-width: 768px)").matches) document.body.classList.add("sidebar-collapsed");</script>
@@ -47,13 +47,14 @@
           <div class="domain-toggle" id="search-domain-toggle">
             <button type="button" class="active" data-domain="company">회사</button>
             <button type="button" data-domain="hotspot">핫플</button>
+            <button type="button" id="photo-tab" data-photo-tab>사진</button>
           </div>
-          <div class="domain-toggle" id="photo-toggle">
-            <button type="button" data-gallery="food">음식</button>
-            <button type="button" data-gallery="fun">웃긴</button>
-            <button type="button" data-gallery="event">행사</button>
-            <button type="button" data-gallery="pretty">이쁜</button>
-            <button type="button" data-gallery="tips">팁</button>
+          <div class="photo-kinds" id="photo-toggle" hidden>
+            <button type="button" data-gallery="food"><span class="icon"><img src="/static/ico/pack_2/17_photo_food.png" alt=""></span><span>음식</span></button>
+            <button type="button" data-gallery="fun"><span class="icon"><img src="/static/ico/pack_2/18_photo_fun.png" alt=""></span><span>웃긴 사진</span></button>
+            <button type="button" data-gallery="event"><span class="icon"><img src="/static/ico/pack_2/19_photo_event.png" alt=""></span><span>행사</span></button>
+            <button type="button" data-gallery="pretty"><span class="icon"><img src="/static/ico/pack_2/20_photo_pretty.png" alt=""></span><span>이쁜 사진</span></button>
+            <button type="button" data-gallery="tips"><span class="icon"><img src="/static/ico/pack_2/21_photo_tips.png" alt=""></span><span>촬영 팁</span></button>
           </div>
 
           <div class="sidebar__categories" data-domain="company">
@@ -575,12 +576,18 @@
     let activeDomain = document.querySelector("#search-domain-toggle button.active[data-domain]").getAttribute("data-domain");
 
     // 음식사진/웃긴사진: 지도 대신 갤러리를 보여 준다. 왼쪽 슬라이드(토글 줄)는 그대로 남는다.
-    const galleryButtons = document.querySelectorAll(".domain-toggle button[data-gallery]");
+    const galleryButtons = document.querySelectorAll("#photo-toggle button[data-gallery]");
     const galleryArea = document.getElementById("gallery-area");
     const galleryGrid = document.getElementById("gallery-grid");
     const sidebarListEls = [document.getElementById("place-list-title"), document.getElementById("place-list")];
 
+    const photoTab = document.getElementById("photo-tab");
+    const photoToggle = document.getElementById("photo-toggle");
+    let lastPhotoKind = "food";
+
     function leaveGallery() {
+      photoTab.classList.remove("active");
+      photoToggle.hidden = true;
       galleryArea.hidden = true;
       galleryButtons.forEach(function (b) { b.classList.remove("active"); });
       sidebarListEls.forEach(function (el) { el.hidden = false; });
@@ -805,6 +812,9 @@
 
     function showGallery(kind) {
       currentKind = kind;
+      lastPhotoKind = kind;
+      photoTab.classList.add("active");
+      photoToggle.hidden = false;
       galleryStatus.textContent = "";
       domainButtons.forEach(function (b) { b.classList.remove("active"); });
       galleryButtons.forEach(function (b) {
@@ -825,6 +835,12 @@
         }
         history.replaceState(null, "", "#photos-" + btn.getAttribute("data-gallery"));
       });
+    });
+
+    // 맨 위 "사진" 탭: 마지막에 보던 종류(처음엔 음식)를 연다. 사이드바는 닫지 않아 아래 종류 줄을 고를 수 있다.
+    photoTab.addEventListener("click", function () {
+      showGallery(lastPhotoKind);
+      history.replaceState(null, "", "#photos-" + lastPhotoKind);
     });
 
     // 영역(회사/핫플) 전환. 검색 결과에서 다른 영역의 장소를 고를 때도 쓴다(keepSearch=true면 검색 목록을 지우지 않는다).
