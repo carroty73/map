@@ -304,6 +304,10 @@ def remove_thumb(kind, filename):
         pass
 
 
+def natural_key(name):
+    return [int(t) if t.isdigit() else t.lower() for t in re.split(r"(\d+)", name)]
+
+
 def list_photos(kind):
     gallery = PHOTO_GALLERIES.get(kind)
     if not gallery:
@@ -311,9 +315,11 @@ def list_photos(kind):
     folder = os.path.join(app.root_path, "static", "photos", gallery["folder"])
     names = []
     if os.path.isdir(folder):
+        # 이름 속 숫자는 숫자로 비교한다(추석_2가 추석_10보다 앞에 오게)
         names = sorted(
-            n for n in os.listdir(folder)
-            if os.path.splitext(n)[1].lower() in PHOTO_EXTS
+            (n for n in os.listdir(folder)
+             if os.path.splitext(n)[1].lower() in PHOTO_EXTS),
+            key=natural_key,
         )
     return [
         {
