@@ -9,7 +9,7 @@
   <link rel="manifest" href="/static/manifest.webmanifest">
   <meta name="theme-color" content="#ff8a3d">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <link rel="stylesheet" href="/static/css/company_v2.css?v=23">
+  <link rel="stylesheet" href="/static/css/company_v2.css?v=24">
 </head>
 <body>
   <script>if (window.matchMedia("(max-width: 768px)").matches) document.body.classList.add("sidebar-collapsed");</script>
@@ -47,8 +47,13 @@
           <div class="domain-toggle" id="search-domain-toggle">
             <button type="button" class="active" data-domain="company">회사</button>
             <button type="button" data-domain="hotspot">핫플</button>
-            <button type="button" data-gallery="food">음식사진</button>
-            <button type="button" data-gallery="fun">웃긴사진</button>
+          </div>
+          <div class="domain-toggle" id="photo-toggle">
+            <button type="button" data-gallery="food">음식</button>
+            <button type="button" data-gallery="fun">웃긴</button>
+            <button type="button" data-gallery="event">행사</button>
+            <button type="button" data-gallery="pretty">이쁜</button>
+            <button type="button" data-gallery="tips">팁</button>
           </div>
 
           <div class="sidebar__categories" data-domain="company">
@@ -570,7 +575,7 @@
     let activeDomain = document.querySelector("#search-domain-toggle button.active[data-domain]").getAttribute("data-domain");
 
     // 음식사진/웃긴사진: 지도 대신 갤러리를 보여 준다. 왼쪽 슬라이드(토글 줄)는 그대로 남는다.
-    const galleryButtons = document.querySelectorAll("#search-domain-toggle button[data-gallery]");
+    const galleryButtons = document.querySelectorAll(".domain-toggle button[data-gallery]");
     const galleryArea = document.getElementById("gallery-area");
     const galleryGrid = document.getElementById("gallery-grid");
     const sidebarListEls = [document.getElementById("place-list-title"), document.getElementById("place-list")];
@@ -861,7 +866,7 @@
     });
 
     // 주소가 #photos-food / #photos-fun 이면 갤러리를 바로 연다
-    const photosHash = /^#photos-(food|fun)$/.exec(location.hash);
+    const photosHash = /^#photos-(food|fun|event|pretty|tips)$/.exec(location.hash);
     if (photosHash) showGallery(photosHash[1]);
 
     // ===== 검색 =====

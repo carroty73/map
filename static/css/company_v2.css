@@ -137,6 +137,9 @@ html, body {
 .domain-toggle button[data-domain="hotspot"] { --bg-on: #f9d3d5; --fg-on: #d44c47; }
 .domain-toggle button[data-gallery="food"] { --bg-on: #f6e4a8; --fg-on: #b27d1c; }
 .domain-toggle button[data-gallery="fun"] { --bg-on: #cfe5cf; --fg-on: #448361; }
+.domain-toggle button[data-gallery="event"] { --bg-on: #f9d3d5; --fg-on: #d44c47; }
+.domain-toggle button[data-gallery="pretty"] { --bg-on: #e8d9f1; --fg-on: #8a4ea8; }
+.domain-toggle button[data-gallery="tips"] { --bg-on: #cde7f1; --fg-on: #337ea9; }
 
 .domain-toggle button.active {
   background: var(--bg-on, #ff8a3d);

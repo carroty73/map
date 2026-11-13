@@ -248,6 +248,9 @@ def company_page(name):
 PHOTO_GALLERIES = {
     "food": {"title": "음식사진", "folder": "food", "desc": "모임할 때 쓰는 음식 이미지"},
     "fun": {"title": "웃긴사진", "folder": "fun", "desc": "채팅할 때 쓰는 웃긴 사진, 멋진 사진"},
+    "event": {"title": "행사사진", "folder": "event", "desc": "명절, 생일, 결혼, 조의 등 행사와 경조사에 쓰는 사진"},
+    "pretty": {"title": "이쁜사진", "folder": "pretty", "desc": "격언 등 보기 좋은 사진"},
+    "tips": {"title": "촬영팁", "folder": "tips", "desc": "사진 잘 찍는 법"},
 }
 PHOTO_EXTS = {".jpg", ".jpeg", ".png", ".gif", ".webp"}
 
