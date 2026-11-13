@@ -9,7 +9,7 @@
   <link rel="manifest" href="/static/manifest.webmanifest">
   <meta name="theme-color" content="#ff8a3d">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <link rel="stylesheet" href="/static/css/company_v2.css?v=27">
+  <link rel="stylesheet" href="/static/css/company_v2.css?v=29">
 </head>
 <body>
   <script>if (window.matchMedia("(max-width: 768px)").matches) document.body.classList.add("sidebar-collapsed");</script>
@@ -736,12 +736,27 @@
       });
     }
 
+    // 사진을 PNG Blob으로 바꾼다(클립보드는 PNG만 안정적으로 받는다). GIF는 첫 장면만 들어간다.
+    function photoAsPng(url) {
+      return fetch(url).then(function (r) { return r.blob(); }).then(function (blob) {
+        if (blob.type === "image/png") return blob;
+        return createImageBitmap(blob).then(function (bmp) {
+          const c = document.createElement("canvas");
+          c.width = bmp.width; c.height = bmp.height;
+          c.getContext("2d").drawImage(bmp, 0, 0);
+          return new Promise(function (resolve, reject) {
+            c.toBlob(function (b) { b ? resolve(b) : reject(new Error("png")); }, "image/png");
+          });
+        });
+      });
+    }
+
     function loadGallery(kind) {
       fetch("/api/photos/" + encodeURIComponent(kind))
         .then(function (r) { return r.json(); })
         .then(function (data) {
           document.getElementById("gallery-title").textContent = data.title;
-          document.getElementById("gallery-desc").textContent = data.desc + " - 링크를 복사하거나 내려받으세요.";
+          document.getElementById("gallery-desc").textContent = data.desc + " - 이미지를 복사하거나 내려받으세요.";
           galleryGrid.innerHTML = "";
           if (!data.photos.length) {
             const empty = document.createElement("div");
@@ -774,23 +789,59 @@
             const actions = document.createElement("div");
             actions.className = "gallery-card__actions";
             const fullUrl = new URL(p.url, location.href).href;
-            const copyBtn = document.createElement("button");
-            copyBtn.type = "button"; copyBtn.className = "gallery-card__copy"; copyBtn.textContent = "링크 복사";
-            copyBtn.addEventListener("click", function () {
-              copyText(fullUrl).then(function () {
-                copyBtn.textContent = "복사됨 ✓";
-              }, function () {
-                window.prompt("아래 주소를 복사하세요", fullUrl);
-              }).then(function () {
-                setTimeout(function () { copyBtn.textContent = "링크 복사"; }, 1500);
+            function flash(btn, text, ok) {
+              const orig = btn.getAttribute("data-label");
+              btn.textContent = text;
+              setTimeout(function () { btn.textContent = orig; }, ok ? 1500 : 2500);
+            }
+            function mkBtn(label) {
+              const b = document.createElement("button");
+              b.type = "button"; b.className = "gallery-card__copy"; b.textContent = label;
+              b.setAttribute("data-label", label);
+              return b;
+            }
+            // 이미지 복사: 사진 자체를 클립보드에 넣는다(채팅창에 붙여넣으면 이미지로 올라감)
+            const canCopyImage = !!(window.ClipboardItem && navigator.clipboard && window.isSecureContext);
+            if (canCopyImage) {
+              const imgBtn = mkBtn("이미지 복사");
+              imgBtn.addEventListener("click", function () {
+                imgBtn.textContent = "복사 중...";
+                // Safari는 클릭 직후에 ClipboardItem을 만들어야 해서 Promise를 그대로 넘긴다
+                const item = new ClipboardItem({ "image/png": photoAsPng(p.url) });
+                navigator.clipboard.write([item]).then(function () {
+                  flash(imgBtn, "복사됨 ✓", true);
+                }, function () {
+                  flash(imgBtn, "복사 실패", false);
+                });
               });
-            });
-            actions.appendChild(copyBtn);
+              actions.appendChild(imgBtn);
+            }
+            // 링크 복사는 이미지 복사가 안 되는 환경에서만 대신 보여 준다(카톡은 링크만으로는 이미지를 보여 주지 않음)
+            if (!canCopyImage) {
+              const copyBtn = mkBtn("링크 복사");
+              copyBtn.addEventListener("click", function () {
+                copyText(fullUrl).then(function () {
+                  flash(copyBtn, "복사됨 ✓", true);
+                }, function () {
+                  window.prompt("아래 주소를 복사하세요", fullUrl);
+                });
+              });
+              actions.appendChild(copyBtn);
+            }
             if (navigator.share) {
-              const shareBtn = document.createElement("button");
-              shareBtn.type = "button"; shareBtn.className = "gallery-card__copy"; shareBtn.textContent = "공유";
+              const shareBtn = mkBtn("공유");
               shareBtn.addEventListener("click", function () {
-                navigator.share({ title: p.label, url: fullUrl }).catch(function () {});
+                // 가능하면 사진 파일 자체를 공유(카톡에 이미지로 올라감), 안 되면 주소만 공유
+                fetch(p.url).then(function (r) { return r.blob(); }).then(function (blob) {
+                  const file = new File([blob], p.filename, { type: blob.type || "image/jpeg" });
+                  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    return navigator.share({ files: [file], title: p.label });
+                  }
+                  return navigator.share({ title: p.label, url: fullUrl });
+                }).catch(function (e) {
+                  if (e && e.name === "AbortError") return;
+                  navigator.share({ title: p.label, url: fullUrl }).catch(function () {});
+                });
               });
               actions.appendChild(shareBtn);
             }
