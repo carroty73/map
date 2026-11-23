@@ -23,9 +23,9 @@
     <div class="sidebar" id="sidebar">
       <div class="sidebar__header">
         <span class="sidebar__logo" id="sidebar-logo" role="button" tabindex="0">carrotymap</span>
-        <div class="view-count">
-          <span>Today <b id="view-count-today">-</b></span>
-          <span>Total <b id="view-count-total">-</b></span>
+        <div class="view-count" data-counter="map" data-url="https://app.carroty.com/count">
+          <span>Today <b data-today>-</b></span>
+          <span>Total <b data-total>-</b></span>
         </div>
       </div>
 
@@ -1335,15 +1335,6 @@
         });
     });
 
-    // ===== 조회수 =====
-    fetch("/api/view-count")
-      .then(function (res) { return res.json(); })
-      .then(function (data) {
-        document.getElementById("view-count-today").textContent = (data.today || 0).toLocaleString();
-        document.getElementById("view-count-total").textContent = (data.total || 0).toLocaleString();
-      })
-      .catch(function (err) { console.warn("조회수를 불러오지 못했습니다.", err); });
-
     initMap();
     // 즐겨찾기 그리기에서 오류가 나도 아래의 햄버거 버튼 연결까지 멈추지 않게 한다.
     try { renderFavoritesPanel(); } catch (err) { console.warn("즐겨찾기를 그리지 못했습니다.", err); }
@@ -1418,5 +1409,6 @@
       }, 3000);
     })();
   </script>
+<script src="https://app.carroty.com/web_common/counter/counter.js?v=1"></script>
 </body>
 </html>
