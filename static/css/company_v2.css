@@ -119,8 +119,15 @@ html, body {
   overflow: hidden;
 }
 
-.domain-toggle button {
+.domain-toggle button,
+.domain-toggle a {
   flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  text-decoration: none;
+  line-height: normal;
   padding: 8px 0;
   border: none;
   background: #fff;
@@ -129,7 +136,8 @@ html, body {
   cursor: pointer;
 }
 
-.domain-toggle button + button {
+.domain-toggle button + button,
+.domain-toggle button + a {
   border-left: 1px solid #ddd;
 }
 
@@ -139,6 +147,8 @@ html, body {
 .domain-toggle button[data-domain="hotspot"] { --bg-on: #f9d3d5; --fg-on: #d44c47; }
 .domain-toggle[hidden] { display: none; }
 .domain-toggle button[data-photo-tab] { --bg-on: #cfe5cf; --fg-on: #448361; }
+/* 날씨: 눌러서 켜지는 토글이 아니라 weather.carroty.com으로 가는 링크(나중에 지도 안의 탭으로 바꿀 자리). 글씨만 하늘색 */
+.domain-toggle a.weather-link { color: #1f6fa8; }
 .domain-toggle button[data-gallery="food"] { --bg-on: #f6e4a8; --fg-on: #b27d1c; }
 .domain-toggle button[data-gallery="fun"] { --bg-on: #cfe5cf; --fg-on: #448361; }
 .domain-toggle button[data-gallery="event"] { --bg-on: #f9d3d5; --fg-on: #d44c47; }
