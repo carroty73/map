@@ -135,7 +135,9 @@ python app.py
 
 - **팝업 카드**(커밋 `f6f9315`, 노션 할일 `TODO-19 팝업 모양 바꾸기`): 마커를 누르면 뜨는 팝업을 `asset.carroty.com` 갤러리 카드 모양으로 바꿨다(제목 굵게와 즐겨찾기 별, 라벨은 회색 작은 글씨와 값은 굵게, 주황 테두리 버튼 둘과 꽉 찬 주황 버튼). 코드는 `index.html`의 `buildPopupHtml`, `wirePopupButtons`(내용은 `bindPopup`에 함수로 넘겨 열 때 만든다), 스타일은 `company_v2.css`의 `.pc` 계열과 `.card-popup`(지금 `?v=40`)이다.
 - **항목은 `static/popup.json`에서 켜고 끈다**: `fields`(name, favorite, category, address, tags, phone, intro)와 `buttons`(copyAddress, directions, share, detail)가 각각 `{ "show": true, "설명": "..." }` 모양이다. 값이 없는 장소는 true여도 그 줄이 안 보인다. 서버 재시작 없이 새로고침만 하면 반영된다(파일이 없거나 깨지면 `index.html` 안의 기본값을 쓴다). 예전 모양(`"name": true`)도 읽는다.
-- **`phone`(전화)과 `intro`(소개)는 `app.py`의 `/api/places`가 아직 내려보내지 않아서** `show`를 true로 해도 안 보인다. 노션 핫플 DB의 `전화번호`, `간략소개`를 `p.phone`, `p.intro`로 내려보내야 켜진다(서버 재시작 필요).
+- **`phone`(전화)과 `intro`(소개)**: `/api/places`가 노션 `전화번호`, `간략소개`를 `phone`, `intro`로 내려보낸다(2026-11-26, `app.py` 수정이라 `map_web` 재시작 필요). 값이 있는 장소만 그 줄이 보인다(2026-11-26 기준 전화 38곳, 소개 24곳).
 - **광고 배너에 가리던 문제**: 팝업이 열릴 때 지도가 광고 아래로 자동으로 밀리도록 `autoPanPaddingTopLeft: [20, 115]`를 줬다.
 - **`weather.carroty.com`**은 아직 빈 페이지(`app/weather/index.html`)라 적용할 팝업이 없다. 날씨 지도를 만들 때 같은 `.pc` 스타일과 같은 JSON 방식을 쓰면 같은 모양이 된다.
 - 길찾기 버튼은 카카오맵 길찾기 링크(`map.kakao.com/link/to/이름,위도,경도`)를 새 탭으로 연다. 공유 버튼은 `navigator.share`가 되는 브라우저에서 공유 창을 열고, 안 되면 이름과 주소를 복사한다.
+
+- **즐겨찾기 로딩 중 흐림**: `/api/places`를 받는 약 3초 동안 `#favorite-list`에 `is-loading`을 붙여 흐리게 하고 누를 수 없게 한다. 로딩 전에 누르면 마커를 못 찾아 `flyTo`만 하고(영역도 안 바꿈) 아이콘이 안 보였기 때문이다. 노션에서 이름이나 주소가 바뀐 장소는 저장된 id(`영역|이름|주소`)가 달라져 로딩 뒤에도 같은 증상이 날 수 있다(아직 처리 안 함).

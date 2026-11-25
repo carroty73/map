@@ -615,6 +615,9 @@ def api_places():
                 "category": category,
                 "domain": domain["key"],
                 "tags": tag_names(props.get("태그")),
+                # 팝업 카드에서 쓴다(static/popup.json의 phone, intro). 값이 없으면 빈 문자열.
+                "phone": ((props.get("전화번호") or {}).get("phone_number")) or "",
+                "intro": "".join(t.get("plain_text", "") for t in ((props.get("간략소개") or {}).get("rich_text") or [])),
                 "lat": lat,
                 "lon": lon,
                 "url": notion_public_url(page),
