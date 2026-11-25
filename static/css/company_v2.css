@@ -1013,3 +1013,6 @@ button.gallery-tag {
 .pc-btns { display: flex; gap: 6px; margin-bottom: 6px; }
 .pc-btn { flex: 1; padding: 7px 0; border: 1px solid #ff8a3d; border-radius: 8px; background: #fff; color: #ff8a3d !important; font-size: 13px; font-weight: 600; text-align: center; text-decoration: none; cursor: pointer; font-family: inherit; }
 .pc-btn--solid { display: block; background: #ff8a3d; color: #fff !important; border-color: #ff8a3d; }
+
+/* 장소 목록을 불러오는 동안 즐겨찾기를 흐리게 하고 누를 수 없게 한다 */
+#favorite-list.is-loading { opacity: 0.4; pointer-events: none; cursor: progress; transition: opacity 0.2s; }

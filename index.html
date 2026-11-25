@@ -9,7 +9,7 @@
   <link rel="manifest" href="/static/manifest.webmanifest">
   <meta name="theme-color" content="#ff8a3d">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <link rel="stylesheet" href="/static/css/company_v2.css?v=40">
+  <link rel="stylesheet" href="/static/css/company_v2.css?v=41">
 </head>
 <body>
   <script>if (window.matchMedia("(max-width: 768px)").matches) document.body.classList.add("sidebar-collapsed");</script>
@@ -629,17 +629,25 @@
     }
 
     async function loadPlaces() {
-      let data;
+      // 장소 목록을 받는 동안(약 3초) 즐겨찾기를 흐리게 하고 누를 수 없게 한다.
+      // 로딩 전에 누르면 마커를 못 찾아 이동만 하고 아이콘이 안 보이기 때문이다.
+      const favListEl = document.getElementById("favorite-list");
+      if (favListEl) favListEl.classList.add("is-loading");
       try {
-        const res = await fetch("/api/places");
-        data = await res.json();
-      } catch (err) {
-        console.error("장소 데이터를 불러오지 못했습니다.", err);
-        return;
+        let data;
+        try {
+          const res = await fetch("/api/places");
+          data = await res.json();
+        } catch (err) {
+          console.error("장소 데이터를 불러오지 못했습니다.", err);
+          return;
+        }
+        (data.places || []).forEach(function (p) { addPlaceMarker(p); });
+        applyDomainVisibility(activeDomain);
+        updateRegisterTabCount();
+      } finally {
+        if (favListEl) favListEl.classList.remove("is-loading");
       }
-      (data.places || []).forEach(function (p) { addPlaceMarker(p); });
-      applyDomainVisibility(activeDomain);
-      updateRegisterTabCount();
     }
 
     // 검색 패널 안의 핫플/회사 토글: 아래 카테고리 아이콘 세트 + 지도 위 마커를 함께 바꾼다.

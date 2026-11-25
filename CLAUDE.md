@@ -130,3 +130,12 @@ python app.py
 - **마커 깜빡임 버그(수정 완료)**: 검색 결과로 이동하면 마커가 깜빡이는데(`.blink-marker`), 이 애니메이션이 `transform`을 써서 Leaflet이 마커 위치에 쓰는 `translate3d`를 덮어썼다. 그 결과 마커가 지도 왼쪽 위로 튀었다가 애니메이션이 끝난 뒤(약 2초)에야 제자리로 돌아와 "아이콘이 1~2초 늦게 나타나는" 증상이 생겼다(아이콘 파일 다운로드와는 무관, 임시 서버에서 프레임마다 마커 위치를 재서 확인). **마커 요소에 거는 CSS 애니메이션에서 `transform`과 `scale` 속성을 쓰지 말 것**(`scale`은 `translate3d` 바깥에서 적용되어 마커가 옆으로 밀린다). 지금은 투명도와 `drop-shadow`만 쓰고 한 번 0.3초, 5번 반복(전체 1.5초)이다. 캐시 번호는 `company_v2.css?v=37`.
 - **공지, 고객센터, 개인정보처리방침**: 노션 링크(`tulip-taker-d50.notion.site`)를 없애고 `static/pages/notice.html`, `support.html`, `privacy.html`(빈 문서, 내용은 각 파일의 `<div class="empty">`를 바꿔 적는다)로 연결했다. 사이드바 하단 링크와 공지 "더보기"가 이 주소를 연다. 옛 노션 페이지 3개와 복사본은 휴지통으로 보냈고 백업은 `~/backups/notion/2026-11-26-*-원본.json`이다. 노션 `공지`, `고객 센터`는 어제까지 이름이 `teajoa 샘플 2`, `teajoa 샘플 3`으로 바뀌어 있었고 복원하지 않기로 했다.
 - **화면 확인 방법**: 임시 Flask 서버(8099 포트)를 띄우고 `get_client_ip`를 `MY_IP`로 바꿔 방문자 수가 늘지 않게 한 뒤, 헤드리스 Chrome과 CDP로 확인했다. `pkill -f`는 자기 셸을 죽이니 `pkill -x chrome`을 쓰고 서버는 `ss -ltnp`의 pid로 끈다.
+
+## 2026-11-26 작업 기록 (팝업 카드)
+
+- **팝업 카드**(커밋 `f6f9315`, 노션 할일 `TODO-19 팝업 모양 바꾸기`): 마커를 누르면 뜨는 팝업을 `asset.carroty.com` 갤러리 카드 모양으로 바꿨다(제목 굵게와 즐겨찾기 별, 라벨은 회색 작은 글씨와 값은 굵게, 주황 테두리 버튼 둘과 꽉 찬 주황 버튼). 코드는 `index.html`의 `buildPopupHtml`, `wirePopupButtons`(내용은 `bindPopup`에 함수로 넘겨 열 때 만든다), 스타일은 `company_v2.css`의 `.pc` 계열과 `.card-popup`(지금 `?v=40`)이다.
+- **항목은 `static/popup.json`에서 켜고 끈다**: `fields`(name, favorite, category, address, tags, phone, intro)와 `buttons`(copyAddress, directions, share, detail)가 각각 `{ "show": true, "설명": "..." }` 모양이다. 값이 없는 장소는 true여도 그 줄이 안 보인다. 서버 재시작 없이 새로고침만 하면 반영된다(파일이 없거나 깨지면 `index.html` 안의 기본값을 쓴다). 예전 모양(`"name": true`)도 읽는다.
+- **`phone`(전화)과 `intro`(소개)는 `app.py`의 `/api/places`가 아직 내려보내지 않아서** `show`를 true로 해도 안 보인다. 노션 핫플 DB의 `전화번호`, `간략소개`를 `p.phone`, `p.intro`로 내려보내야 켜진다(서버 재시작 필요).
+- **광고 배너에 가리던 문제**: 팝업이 열릴 때 지도가 광고 아래로 자동으로 밀리도록 `autoPanPaddingTopLeft: [20, 115]`를 줬다.
+- **`weather.carroty.com`**은 아직 빈 페이지(`app/weather/index.html`)라 적용할 팝업이 없다. 날씨 지도를 만들 때 같은 `.pc` 스타일과 같은 JSON 방식을 쓰면 같은 모양이 된다.
+- 길찾기 버튼은 카카오맵 길찾기 링크(`map.kakao.com/link/to/이름,위도,경도`)를 새 탭으로 연다. 공유 버튼은 `navigator.share`가 되는 브라우저에서 공유 창을 열고, 안 되면 이름과 주소를 복사한다.
