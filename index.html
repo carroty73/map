@@ -536,6 +536,7 @@
       const item = {
         id: makePlaceId(p), name: p.name, address: p.address || "", category: p.category,
         domain: p.domain, lat: p.lat, lon: p.lon, marker: marker, group: group, url: p.url || "",
+        tags: Array.isArray(p.tags) ? p.tags : [],
       };
       marker.bindPopup(
         '<div class="company-popup">' +
@@ -1066,6 +1067,11 @@
       if (exact.length) return byActiveFirst(exact);
       const byName = pool.filter(function (p) { return normalize(p.name).indexOf(q) !== -1; });
       if (byName.length) return byActiveFirst(byName);
+      // 태그로 찾기: "의정부 명소"처럼 노션 태그와 같은 말을 치면 그 태그가 붙은 곳을 모두 보여 준다.
+      const byTag = pool.filter(function (p) {
+        return (p.tags || []).some(function (t) { return normalize(t) === q; });
+      });
+      if (byTag.length) { const r = byActiveFirst(byTag); r.byTag = true; return r; }
       return byActiveFirst(pool.filter(function (p) { return normalize(p.address).indexOf(q) !== -1; }));
     }
 
@@ -1178,7 +1184,11 @@
         const q = searchInput.value.trim();
         if (!q) return;
         const found = findPlaces(q);
-        if (found.length > 1 && found.every(function (f) { return normalize(f.name) === normalize(found[0].name); })) {
+        if (found.byTag) {
+          // 태그 검색: 첫 번째로 날아가지 않고 목록에서 고르게 한다.
+          renderSearchResults(found);
+          placeListTitleEl.textContent = q + " " + found.length + "곳 - 아래에서 선택하세요";
+        } else if (found.length > 1 && found.every(function (f) { return normalize(f.name) === normalize(found[0].name); })) {
           // 이름이 같은 곳이 여러 개: 임의로 첫 번째로 가지 않고 목록에서 고르게 한다.
           renderSearchResults(found);
           placeListTitleEl.textContent = "같은 이름 " + found.length + "곳 - 아래에서 선택하세요";

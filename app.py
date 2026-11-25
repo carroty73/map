@@ -614,6 +614,7 @@ def api_places():
                 "address": address,
                 "category": category,
                 "domain": domain["key"],
+                "tags": tag_names(props.get("태그")),
                 "lat": lat,
                 "lon": lon,
                 "url": notion_public_url(page),
