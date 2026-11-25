@@ -9,7 +9,7 @@
   <link rel="manifest" href="/static/manifest.webmanifest">
   <meta name="theme-color" content="#ff8a3d">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <link rel="stylesheet" href="/static/css/company_v2.css?v=37">
+  <link rel="stylesheet" href="/static/css/company_v2.css?v=40">
 </head>
 <body>
   <script>if (window.matchMedia("(max-width: 768px)").matches) document.body.classList.add("sidebar-collapsed");</script>
@@ -533,6 +533,75 @@
       });
     }
 
+    // ===== 팝업 카드 (static/popup.json의 true/false로 항목을 켜고 끈다) =====
+    const popupDefault = {
+      fields: { name: true, favorite: true, category: true, address: true, tags: true, phone: false, intro: false },
+      buttons: { copyAddress: true, directions: true, share: false, detail: true },
+    };
+    let popupConfig = popupDefault;
+    fetch("/static/popup.json", { cache: "no-cache" })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (j) {
+        // 항목은 { "show": true, "설명": "..." } 모양이고, 예전처럼 true/false만 적어도 읽는다.
+        const flat = function (base, src) {
+          const out = Object.assign({}, base);
+          Object.keys(src || {}).forEach(function (k) {
+            const v = src[k];
+            out[k] = (v && typeof v === "object") ? !!v.show : !!v;
+          });
+          return out;
+        };
+        if (j) popupConfig = { fields: flat(popupDefault.fields, j.fields), buttons: flat(popupDefault.buttons, j.buttons) };
+      })
+      .catch(function () {});
+
+    function popupRow(label, value) {
+      return '<div class="pc-row"><span class="pc-label">' + escapeHtml(label) + '</span><span class="pc-value">' + escapeHtml(value) + "</span></div>";
+    }
+
+    function buildPopupHtml(item, p) {
+      const f = popupConfig.fields, b = popupConfig.buttons;
+      let html = '<div class="pc">';
+      if (f.name || f.favorite) {
+        html += '<div class="pc-head">' + (f.name ? '<b class="pc-name">' + escapeHtml(item.name) + "</b>" : "<span></span>") + (f.favorite ? favStarHtml(item.id) : "") + "</div>";
+      }
+      let rows = "";
+      if (f.category && item.category) rows += popupRow("분류", item.category);
+      if (f.address && item.address) rows += popupRow("주소", item.address);
+      if (f.tags && item.tags && item.tags.length) rows += popupRow("태그", item.tags.join(", "));
+      if (f.phone && p.phone) rows += popupRow("전화", p.phone);
+      if (f.intro && p.intro) rows += popupRow("소개", p.intro);
+      if (rows) html += '<div class="pc-rows">' + rows + "</div>";
+      let outline = "";
+      if (b.copyAddress && item.address) outline += '<button type="button" class="pc-btn" data-act="copy">주소 복사</button>';
+      if (b.directions) outline += '<button type="button" class="pc-btn" data-act="route">길찾기</button>';
+      if (b.share) outline += '<button type="button" class="pc-btn" data-act="share">공유</button>';
+      if (outline) html += '<div class="pc-btns">' + outline + "</div>";
+      if (b.detail && item.url) html += '<a class="pc-btn pc-btn--solid" href="' + escapeHtml(item.url) + '" target="_blank" rel="noopener">자세히 보기</a>';
+      return html + "</div>";
+    }
+
+    function wirePopupButtons(popupEl, item) {
+      if (!popupEl) return;
+      popupEl.querySelectorAll("[data-act]").forEach(function (btn) {
+        btn.addEventListener("click", function (ev) {
+          ev.stopPropagation();
+          const act = btn.getAttribute("data-act");
+          if (act === "route") {
+            window.open("https://map.kakao.com/link/to/" + encodeURIComponent(item.name) + "," + item.lat + "," + item.lon, "_blank", "noopener");
+            return;
+          }
+          if (act === "share" && navigator.share) {
+            navigator.share({ title: item.name, text: item.address, url: item.url || location.href }).catch(function () {});
+            return;
+          }
+          const text = act === "copy" ? item.address : item.name + " " + item.address;
+          const done = function () { const old = btn.textContent; btn.textContent = "복사됨"; setTimeout(function () { btn.textContent = old; }, 1200); };
+          if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done).catch(function () {});
+        });
+      });
+    }
+
     function addPlaceMarker(p) {
       const group = ensureGroup(p.domain, p.category);
       const marker = L.marker([p.lat, p.lon], {
@@ -544,14 +613,7 @@
         domain: p.domain, lat: p.lat, lon: p.lon, marker: marker, group: group, url: p.url || "",
         tags: Array.isArray(p.tags) ? p.tags : [],
       };
-      marker.bindPopup(
-        '<div class="company-popup">' +
-          '<div class="company-popup__row"><b>' + escapeHtml(p.name) + "</b>" + favStarHtml(item.id) + "</div>" +
-          escapeHtml(p.category) + "<br/>" +
-          escapeHtml(p.address || "") +
-          (p.url ? '<br/><a href="' + escapeHtml(p.url) + '" target="_blank" rel="noopener">자세히 보기</a>' : "") +
-        "</div>"
-      );
+      marker.bindPopup(function () { return buildPopupHtml(item, p); }, { className: "card-popup", minWidth: 250, maxWidth: 250, autoPanPaddingTopLeft: [20, 115], autoPanPaddingBottomRight: [20, 20] });
       marker.on("popupopen", function (e) {
         const popupEl = e.popup.getElement();
         const star = popupEl && popupEl.querySelector(".fav-star");
@@ -559,6 +621,7 @@
           ev.stopPropagation();
           toggleFavorite(item);
         });
+        wirePopupButtons(popupEl, item);
       });
       if (!tagFilter || itemHasTag(item, tagFilter.tag)) marker.addTo(group);
       placeIndex.push(item);

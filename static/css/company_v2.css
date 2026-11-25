@@ -999,3 +999,17 @@ button.gallery-tag {
   color: #d9650f;
   font-weight: 700;
 }
+
+/* 팝업 카드(static/popup.json으로 항목을 켜고 끈다). asset 갤러리 카드와 같은 모양: 라벨 회색, 값 굵게, 주황 테두리 버튼과 꽉 찬 주황 버튼 */
+.card-popup .leaflet-popup-content-wrapper { border-radius: 12px; padding: 0; box-shadow: 0 4px 16px rgba(0,0,0,.18); }
+.card-popup .leaflet-popup-content { margin: 0; width: 250px !important; }
+.pc { padding: 14px 14px 12px; font-size: 13px; line-height: 1.45; color: #333; }
+.pc-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; padding-right: 16px; }
+.pc-name { font-size: 15px; font-weight: 700; }
+.pc-rows { display: grid; gap: 4px; margin-bottom: 10px; }
+.pc-row { display: flex; gap: 10px; align-items: baseline; }
+.pc-label { flex: 0 0 auto; width: 32px; color: #888; font-size: 12px; }
+.pc-value { font-weight: 600; word-break: keep-all; }
+.pc-btns { display: flex; gap: 6px; margin-bottom: 6px; }
+.pc-btn { flex: 1; padding: 7px 0; border: 1px solid #ff8a3d; border-radius: 8px; background: #fff; color: #ff8a3d !important; font-size: 13px; font-weight: 600; text-align: center; text-decoration: none; cursor: pointer; font-family: inherit; }
+.pc-btn--solid { display: block; background: #ff8a3d; color: #fff !important; border-color: #ff8a3d; }
