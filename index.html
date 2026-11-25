@@ -1090,11 +1090,24 @@
     // ----- 태그 필터 -----
     const tagChip = document.createElement("div");
     tagChip.id = "tag-filter-chip";
-    tagChip.hidden = true;
-    tagChip.style.cssText = "margin:6px 12px 0;padding:6px 10px;border-radius:999px;background:#fff3e6;border:1px solid #ff8a3d;color:#a85a00;font-size:13px;display:flex;align-items:center;justify-content:space-between;gap:8px";
-    tagChip.innerHTML = '<span class="tag-chip-text"></span><button type="button" aria-label="필터 끄기" style="border:0;background:transparent;color:#a85a00;font-size:16px;line-height:1;cursor:pointer;padding:0 2px">✕</button>';
+    // 자리를 늘 확보해서(높이 고정) 켜고 끌 때 아래 화면이 출렁이지 않게 한다. 꺼져 있을 때는 안내 글만 보인다.
+    tagChip.style.cssText = "padding:0 16px 12px;background:#ff8a3d";
+    tagChip.innerHTML = '<div class="tag-pill" style="box-sizing:border-box;height:32px;padding:0 10px;border-radius:999px;background:transparent;border:1px solid transparent;display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;color:rgba(255,255,255,.75)"><span class="tag-chip-text"></span><button type="button" aria-label="필터 끄기" style="display:none;border:0;background:transparent;color:#fff;font-size:16px;line-height:1;cursor:pointer;padding:0 2px">✕</button></div>';
+    const tagPill = tagChip.querySelector(".tag-pill");
+    const tagChipText = tagChip.querySelector(".tag-chip-text");
+    const tagChipBtn = tagChip.querySelector("button");
+    function setTagChip(text) {
+      const on = !!text;
+      tagChipText.textContent = on ? text : "태그로 모아 보기 · 예) 의정부 명소";
+      tagPill.style.borderColor = on ? "rgba(255,255,255,.85)" : "transparent";
+      tagPill.style.color = on ? "#fff" : "rgba(255,255,255,.75)";
+      tagPill.style.fontSize = on ? "13px" : "12px";
+      tagPill.style.fontWeight = on ? "600" : "400";
+      tagChipBtn.style.display = on ? "" : "none";
+    }
+    setTagChip("");
     document.querySelector(".sidebar__search").insertAdjacentElement("afterend", tagChip);
-    tagChip.querySelector("button").addEventListener("click", clearTagFilter);
+    tagChipBtn.addEventListener("click", clearTagFilter);
 
     function applyTagFilter(found) {
       const tag = found.tag;
@@ -1127,8 +1140,7 @@
       if (changed && matched.length) {
         map.fitBounds(L.latLngBounds(matched.filter(function (p) { return p.domain === domain; }).map(function (p) { return [p.lat, p.lon]; })), { padding: [40, 40], maxZoom: 15 });
       }
-      tagChip.querySelector(".tag-chip-text").textContent = "📍 " + tag + "만 보는 중 (" + matched.length + "곳)";
-      tagChip.hidden = false;
+      setTagChip("📍 " + tag + "만 보는 중 (" + matched.length + "곳)");
     }
 
     function clearTagFilter() {
@@ -1138,7 +1150,7 @@
       placeIndex.forEach(function (p) { p.group.addLayer(p.marker); });
       saved.forEach(function (s) { s[0].classList.toggle("is-off", s[1]); });
       applyDomainVisibility(activeDomain);
-      tagChip.hidden = true;
+      setTagChip("");
     }
 
     function blinkMarker(marker) {
